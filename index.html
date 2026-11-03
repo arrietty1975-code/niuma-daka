@@ -27,6 +27,7 @@
     --shadow:0 1px 2px rgba(28,27,25,.04), 0 14px 34px -18px rgba(28,27,25,.18);
   }
   *{box-sizing:border-box}
+  [hidden]{display:none!important}
   html,body{margin:0;padding:0}
   body{
     font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,-apple-system,"Segoe UI",sans-serif;
@@ -391,6 +392,90 @@
     .vent-actions .btn{flex:1;justify-content:center}
   }
 
+  /* meal buddy */
+  .meal-panel{margin-top:15px;min-height:0}
+  .meal-layout{display:grid;grid-template-columns:1.05fr 1fr;gap:16px;margin-top:4px}
+  .meal-pick-box{
+    background:linear-gradient(180deg,#fff9f2,#fffdf9);border:1px solid #f0e3d5;border-radius:18px;
+    padding:18px;display:flex;flex-direction:column;position:relative;overflow:hidden;
+  }
+  .meal-pick-box::before{
+    content:"";position:absolute;right:-40px;top:-60px;width:160px;height:160px;border-radius:50%;
+    background:radial-gradient(circle,rgba(255,90,31,.12),transparent 68%);pointer-events:none;
+  }
+  .meal-catline{margin:0;font-size:11px;color:var(--muted)}
+  .meal-pick{
+    flex:1;min-height:112px;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;
+    gap:4px;margin:10px 0;padding:4px 2px;
+  }
+  .meal-pick .meal-name{font-size:26px;font-weight:900;letter-spacing:-.03em;line-height:1.2;color:var(--ink)}
+  .meal-pick .meal-tags{font-size:10.5px;color:var(--muted);letter-spacing:.02em}
+  .meal-pick .meal-tip{
+    font-size:11.5px;line-height:1.6;color:#7a5a42;background:#fff1e4;border:1px solid #ffd8bd;
+    border-radius:10px;padding:7px 10px;margin-top:4px;
+  }
+  .meal-pick.empty{font-size:12px;color:var(--muted);justify-content:center;align-items:center;text-align:center}
+  .meal-pick .meal-kcal{font-size:11px;font-weight:700;color:var(--orange-deep)}
+  .meal-cat{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+  .meal-cat button{
+    border:1px solid var(--line);background:#fff;color:#6b645c;font-size:11px;padding:6px 10px;
+    border-radius:999px;cursor:pointer;transition:.18s;
+  }
+  .meal-cat button:hover{background:#fff4ec;border-color:#ffc4a6;color:var(--orange)}
+  .meal-cat button.active{background:var(--orange-soft);border-color:#ffc4a6;color:var(--orange-deep);font-weight:700}
+  .meal-actions{display:flex;gap:8px;margin-top:auto}
+  .meal-record{display:flex;flex-direction:column;justify-content:center}
+  .meal-record h4{margin:0 0 8px;font-size:12.5px;font-weight:800}
+  .meal-row{display:flex;gap:8px}
+  .meal-row input{
+    flex:1;min-width:0;border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;
+    font:inherit;font-size:13px;outline:none;background:#fff;color:var(--ink);
+  }
+  .meal-row #mealKcal{flex:0 0 88px;text-align:center;font-size:12px}
+  .meal-row input:focus{border-color:var(--orange);box-shadow:0 0 0 3px rgba(255,90,31,.12)}
+  .meal-photo-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:9px}
+  .meal-photo-row .btn{font-size:11.5px;padding:9px 12px;border-radius:11px}
+  .meal-photo-preview{position:relative;flex:none}
+  .meal-photo-preview[hidden]{display:none}
+  .meal-photo-preview img{width:54px;height:54px;object-fit:cover;border-radius:10px;border:1px solid var(--line);display:block}
+  .meal-photo-preview .icon-only{position:absolute;top:-6px;right:-6px;width:22px;height:22px;border-radius:50%;background:#fff;border:1px solid var(--line)}
+  .meal-photo-preview .icon-only .icon{width:11px;height:11px}
+  .meal-spacer{flex:1}
+  .meal-hint{font-size:10px;line-height:1.5;color:#a49d92;margin:8px 0 0}
+  .meal-today{margin-top:14px;border-top:1px dashed var(--line);padding-top:12px}
+  .meal-summary{
+    font-size:11.5px;color:#6b635a;background:#f8f4ed;border:1px solid var(--line);
+    border-radius:12px;padding:10px 12px;margin-bottom:9px;line-height:1.6;
+  }
+  .meal-item{
+    display:flex;gap:10px;align-items:flex-start;padding:10px;border:1px solid var(--line);
+    border-radius:14px;background:#fffdf9;margin-bottom:8px;
+  }
+  .meal-item img{width:54px;height:54px;object-fit:cover;border-radius:10px;border:1px solid var(--line);flex:none}
+  .meal-item-body{flex:1;min-width:0}
+  .meal-item-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+  .meal-item-head b{font-size:12.5px;font-weight:800;letter-spacing:-.01em}
+  .meal-item-head span{font-size:10px;color:var(--muted);flex:none;font-variant-numeric:tabular-nums}
+  .meal-item-meta{font-size:10px;color:var(--muted);margin-top:2px}
+  .meal-item-advice{
+    font-size:11.5px;line-height:1.55;color:#6d5a45;margin-top:5px;padding-left:8px;
+    border-left:2px solid #ffd1b5;
+  }
+  .meal-item .meal-del{
+    border:none;background:transparent;color:#c1b8ac;cursor:pointer;padding:2px 4px;flex:none;
+  }
+  .meal-item .meal-del:hover{color:var(--red)}
+  .meal-item .meal-del .icon{width:15px;height:15px}
+  @media (max-width:900px){
+    .meal-layout{grid-template-columns:1fr}
+    .meal-pick{min-height:96px}
+  }
+  @media (max-width:640px){
+    .meal-pick .meal-name{font-size:23px}
+    .meal-photo-row .meal-spacer{display:none}
+    #mealSave{width:100%}
+  }
+
   /* history */
   .history-panel{margin-top:15px;min-height:0}
   .history-panel .panel-head{flex-wrap:wrap;row-gap:8px}
@@ -673,6 +758,8 @@
   <symbol id="i-flag" viewBox="0 0 24 24"><path d="M5.5 21V4"/><path d="M5.5 5h11l-2 3 2 3h-11"/></symbol>
   <symbol id="i-briefcase" viewBox="0 0 24 24"><rect x="3.5" y="7.5" width="17" height="12" rx="2.5"/><path d="M8.5 7.5V5.5A1.5 1.5 0 0 1 10 4h4a1.5 1.5 0 0 1 1.5 1.5v2"/><path d="M3.5 12.5h17"/><path d="M10 12.5v2h4v-2"/></symbol>
   <symbol id="i-bubble" viewBox="0 0 24 24"><path d="M21 11.5a8.5 8.5 0 0 1-12.6 7.4L3 20l.9-4.4A8.5 8.5 0 1 1 21 11.5z"/><path d="M8 10.5h8M8 13.5h5"/></symbol>
+  <symbol id="i-food" viewBox="0 0 24 24"><path d="M4 11h6a4 4 0 0 1 0 8H4v-8z"/><path d="M12 11a5 5 0 0 1 0 8M16 3c1 3 1 5 0 7M19 3c1 3 1 5 0 7"/><path d="M4 21v-2h6v2z"/></symbol>
+  <symbol id="i-camera" viewBox="0 0 24 24"><path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.5" r="3.5"/></symbol>
   <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M15.5 6.5V5A1.5 1.5 0 0 0 14 3.5H5A1.5 1.5 0 0 0 3.5 5v9A1.5 1.5 0 0 0 5 15.5h1.5"/></symbol>
   <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13 2L5 13h5l-1 9 8-11h-5l1-9z"/></symbol>
   <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M18.4 5.6l-2.8 2.8M8.4 15.6l-2.8 2.8"/></symbol>
@@ -974,6 +1061,57 @@
     </div>
   </section>
 
+  <section class="panel meal-panel">
+    <div class="panel-head">
+      <svg class="icon"><use href="#i-food"/></svg>
+      <h3>吃饭搭子</h3>
+      <span class="tag" id="mealTag">已记录 0 顿</span>
+    </div>
+    <div class="meal-layout">
+      <div class="meal-pick-box">
+        <p class="meal-catline" id="mealCatline">今天吃什么，是一个哲学问题。先抽一签。</p>
+        <div class="meal-pick" id="mealPick">点下面「来一签」，命运帮你决定。</div>
+        <div class="meal-cat chips" id="mealCatChips">
+          <button type="button" class="active" data-cat="any">随便吃</button>
+          <button type="button" data-cat="lunch">午餐</button>
+          <button type="button" data-cat="dinner">晚餐</button>
+          <button type="button" data-cat="night">加班夜宵</button>
+          <button type="button" data-cat="diet">减肥餐</button>
+          <button type="button" data-cat="takeout">外卖</button>
+        </div>
+        <div class="meal-actions">
+          <button class="btn primary grow" id="mealRollBtn" type="button">来一签</button>
+          <button class="btn soft grow" id="mealUseBtn" type="button" hidden>就用这个</button>
+        </div>
+      </div>
+
+      <div class="meal-record">
+        <h4>记录这顿</h4>
+        <div class="meal-row">
+          <input id="mealInput" type="text" maxlength="50" placeholder="吃了什么？写个菜名或外卖" autocomplete="off">
+          <input id="mealKcal" type="number" min="0" max="3000" placeholder="估卡(可选)" inputmode="numeric" autocomplete="off">
+        </div>
+        <div class="meal-photo-row">
+          <input type="file" id="mealPhotoInput" accept="image/*" capture="environment" hidden>
+          <button class="btn soft" id="mealPhotoBtn" type="button">
+            <svg class="icon"><use href="#i-camera"/></svg>拍照 / 传照片
+          </button>
+          <div class="meal-photo-preview" id="mealPhotoPreview" hidden>
+            <img id="mealPhotoImg" alt="本顿照片">
+            <button class="btn soft icon-only" id="mealPhotoClear" type="button" aria-label="删除照片">
+              <svg class="icon"><use href="#i-minus"/></svg>
+            </button>
+          </div>
+          <div class="meal-spacer"></div>
+          <button class="btn primary" id="mealSave" type="button">记下这顿</button>
+        </div>
+        <p class="meal-hint" id="mealHint">写清楚点，才能给你靠谱的建议；拍照也行，照片只存在你的浏览器里。</p>
+      </div>
+    </div>
+
+    <div class="meal-today" id="mealToday"></div>
+  </section>
+
   <section class="panels">
     <div class="panel">
       <div class="panel-head">
@@ -1232,6 +1370,7 @@
       waterSnoozeUntil: 0,
       eyeSnoozeUntil: 0,
       ventCount: 0,
+      meals: [],
       lastScore: 0,
       logs: []
     };
@@ -1743,6 +1882,278 @@
   function renderVent(){
     var tag = $('#ventTag');
     if (tag) tag.textContent = '已吐槽 ' + (state.ventCount || 0) + ' 次';
+  }
+
+  /* ---------------- 吃饭搭子 ---------------- */
+  var mealCat = 'any';
+  var currentPick = null;
+  var currentMealPhoto = null;
+  var MEAL_CAT_LABELS = { any: '随便', lunch: '午餐', dinner: '晚餐', night: '夜宵', diet: '减肥餐', takeout: '外卖' };
+  var MEAL_CATCHLINES = [
+    '看了一圈外卖，就它了。',
+    '再纠结就要饿死了，听命运的。',
+    '这一口下去，班都能多加一会儿。',
+    '别翻了，胃已经替你同意了。',
+    '今天和它有缘，就它吧。'
+  ];
+
+  var MEALS = [
+    { name: '黄焖鸡米饭', kcal: 550, cats: ['any', 'lunch', 'dinner', 'takeout'], tags: ['微辣', '下饭'], tip: '黄焖鸡香归香，米饭别整两碗。' },
+    { name: '麻辣烫（菜多肉少）', kcal: 480, cats: ['any', 'lunch', 'dinner', 'takeout'], tags: ['自选', '蔬菜'], tip: '多拿菜和豆腐，辣度收着点，汤少喝。' },
+    { name: '螺蛳粉 + 冰可乐', kcal: 680, cats: ['any', 'lunch', 'night', 'takeout'], tags: ['上头', '重口'], tip: '快乐是真的，钠也是真的，多喝点水。' },
+    { name: '沙县鸭腿饭', kcal: 550, cats: ['any', 'lunch', 'dinner', 'takeout'], tags: ['快', '管饱'], tip: '性价比之选，鸭腿记得去皮。' },
+    { name: '兰州拉面加蛋', kcal: 520, cats: ['any', 'lunch', 'dinner', 'takeout'], tags: ['汤面', '顶饱'], tip: '加个蛋不错，汤别喝见底。' },
+    { name: '猪脚饭', kcal: 640, cats: ['any', 'lunch', 'dinner', 'takeout'], tags: ['硬菜', '下饭'], tip: '胶原蛋白是安慰，油是真的，别天天来。' },
+    { name: '窑鸡 + 米饭', kcal: 700, cats: ['any', 'dinner', 'takeout'], tags: ['多肉', '聚餐'], tip: '鸡是好鸡，皮和油少吃点。' },
+    { name: '轻食沙拉 + 油醋汁', kcal: 320, cats: ['any', 'lunch', 'diet', 'takeout'], tags: ['清淡', '低卡'], tip: '很健康，鸡胸记得多点，别光吃草。' },
+    { name: '鸡胸肉全麦三明治', kcal: 380, cats: ['any', 'lunch', 'diet'], tags: ['高蛋白', '便携'], tip: '减脂期的好朋友，配杯无糖豆浆。' },
+    { name: '无糖酸奶 + 燕麦碗', kcal: 260, cats: ['any', 'diet'], tags: ['轻', '早餐'], tip: '当早餐不错，别拿它当晚饭硬扛。' },
+    { name: '关东煮（蔬菜 + 豆腐）', kcal: 300, cats: ['any', 'dinner', 'diet'], tags: ['清淡', '汤'], tip: '汤淡一点，辣酱别挤三包。' },
+    { name: '炸鸡 + 快乐水', kcal: 800, cats: ['any', 'night', 'takeout'], tags: ['快乐', '高油'], tip: '加班已经很苦，九点后吃这个明天脸会肿。' },
+    { name: '深夜泡面 + 火腿肠', kcal: 550, cats: ['any', 'night'], tags: ['速食', '救急'], tip: '救急可以，连续三晚就该换换。' },
+    { name: '烧烤（少点肉多点菜）', kcal: 700, cats: ['any', 'night', 'takeout'], tags: ['夜宵', '重口'], tip: '配点蔬菜串，肉别一串接一串。' },
+    { name: '包子 + 小米粥', kcal: 380, cats: ['any', 'lunch', 'diet'], tags: ['暖', '清淡'], tip: '胃舒服，就是有点顶，别配咸菜太多。' },
+    { name: '水煮饺子', kcal: 420, cats: ['any', 'lunch', 'dinner'], tags: ['家常', '管饱'], tip: '水煮的挺好，醋别沾太多。' },
+    { name: '荤素盖浇饭', kcal: 550, cats: ['any', 'lunch', 'dinner', 'takeout'], tags: ['下饭', '标准'], tip: '一荤一素是底线，别只点肉浇头。' },
+    { name: '烤肉拌饭', kcal: 620, cats: ['any', 'lunch', 'dinner', 'takeout'], tags: ['香', '油'], tip: '香是真的香，油也是真的油。' },
+    { name: '小火锅', kcal: 750, cats: ['any', 'dinner', 'night'], tags: ['仪式感', '汤'], tip: '蔬菜先涮，肉垫后，汤别喝。' },
+    { name: '煎饼果子加蛋', kcal: 450, cats: ['any', 'lunch', 'takeout'], tags: ['快', '香'], tip: '薄脆是灵魂也是油，一片就好。' },
+    { name: '工作餐盒饭', kcal: 520, cats: ['any', 'lunch', 'dinner', 'takeout'], tags: ['省心', '随机'], tip: '有菜有肉就挺好，别嫌它普通。' },
+    { name: '麻辣香锅', kcal: 680, cats: ['any', 'lunch', 'dinner', 'takeout'], tags: ['下饭', '重口'], tip: '这锅下去盐值超标，下一顿清淡点。' }
+  ];
+
+  function estimateMealKcal(text){
+    var l = String(text || '').toLowerCase();
+    var table = [
+      ['炸鸡', 600], ['油炸', 650], ['烧烤', 700], ['火锅', 750], ['麻辣香锅', 680], ['麻辣烫', 480],
+      ['螺蛳粉', 560], ['泡面', 480], ['汉堡', 550], ['披萨', 600], ['薯条', 380], ['奶茶', 350],
+      ['可乐', 200], ['蛋糕', 380], ['冰淇淋', 250], ['沙拉', 320], ['鸡胸', 250], ['三明治', 380],
+      ['牛肉', 420], ['鱼', 380], ['虾', 300], ['鸡蛋', 120], ['粥', 200], ['包子', 350], ['饺子', 400],
+      ['炒饭', 600], ['盖浇饭', 550], ['黄焖鸡', 550], ['猪脚饭', 640], ['窑鸡', 700], ['盒饭', 520],
+      ['关东煮', 300], ['煎饼', 450]
+    ];
+    for (var i = 0; i < table.length; i++) {
+      if (l.indexOf(table[i][0]) !== -1) return table[i][1];
+    }
+    if (/辣|油|炸|烤/.test(l)) return 620;
+    if (/甜|糖|奶/.test(l)) return 380;
+    if (/菜|蔬|轻|清/.test(l)) return 320;
+    if (/饭|面|粉|包|饺/.test(l)) return 520;
+    return 450;
+  }
+
+  function mealTagsOf(text){
+    var l = String(text || '').toLowerCase();
+    var t = [];
+    if (/炸|油|烧烤|火锅|麻辣|辣|重口/.test(l)) t.push('重口');
+    if (/菜|蔬菜|青菜|沙拉|清淡|蒸|煮|轻食|粥/.test(l)) t.push('清淡');
+    if (/鸡胸|牛肉|鱼|虾|鸡蛋|蛋白|豆腐|瘦肉/.test(l)) t.push('高蛋白');
+    if (/奶茶|可乐|糖|甜|蛋糕|冰淇淋/.test(l)) t.push('高糖');
+    if (/泡面|速食|薯片|饼干|火腿|香肠/.test(l)) t.push('速食');
+    if (!t.length) t.push('日常');
+    return t.slice(0, 3);
+  }
+
+  function buildMealAdvice(text, kcal){
+    var l = String(text || '').toLowerCase();
+    var tips = [];
+    if (/炸|油|烧烤|火锅|麻辣|辣/.test(l)) tips.push('偏油偏辣，建议配点蔬菜、多喝水。');
+    if (/奶茶|可乐|糖|甜|蛋糕|冰淇淋|饮料/.test(l)) tips.push('糖分偏高，解馋可以，别天天来。');
+    if (/泡面|速食|薯片|饼干|火腿|香肠/.test(l)) tips.push('加工食品钠高，记得多补水。');
+    if (/生冷|冰|刺身|凉/.test(l)) tips.push('偏生冷，肠胃敏感就少吃。');
+    if (/菜|蔬菜|青菜|沙拉|清淡|蒸|煮|轻食|粥/.test(l)) tips.push('有蔬菜也够清淡，这顿不错。');
+    if (/鸡胸|牛肉|鱼|虾|鸡蛋|蛋白|豆腐|瘦肉/.test(l)) tips.push('有优质蛋白，加分。');
+    if (kcal > 900) tips.push('这顿量不小，下一顿悠着点。');
+    if (!tips.length) tips.push('正常一餐，规律吃比什么都强。');
+    return tips.slice(0, 2).join(' ');
+  }
+
+  function mealSummaryAdvice(list, total){
+    if (total > 1800) return '今天热量偏高，下一顿清淡点，能多走两步就多走两步。';
+    if (list.length >= 3 && total >= 1000) return '三餐都记上了，节奏不错，继续保持。';
+    if (total < 700) return '今天吃得有点少，别硬饿着，补点蛋白质。';
+    return '规律吃饭就是最好的养生，别老拿咖啡顶。';
+  }
+
+  function rollMeal(){
+    var pool = MEALS.filter(function(m){ return mealCat === 'any' || m.cats.indexOf(mealCat) !== -1; });
+    if (!pool.length) pool = MEALS;
+    currentPick = pool[Math.floor(Math.random() * pool.length)];
+    var box = $('#mealPick');
+    if (!box) return;
+    box.classList.remove('empty');
+    box.innerHTML = '';
+    var name = document.createElement('div');
+    name.className = 'meal-name';
+    name.textContent = currentPick.name;
+    var tags = document.createElement('div');
+    tags.className = 'meal-tags';
+    tags.textContent = currentPick.tags.join(' · ') + ' · 约 ' + currentPick.kcal + ' kcal';
+    var tip = document.createElement('div');
+    tip.className = 'meal-tip';
+    tip.textContent = '搭子建议：' + currentPick.tip;
+    box.appendChild(name);
+    box.appendChild(tags);
+    box.appendChild(tip);
+    $('#mealCatline').textContent = MEAL_CATCHLINES[Math.floor(Math.random() * MEAL_CATCHLINES.length)] + '（' + MEAL_CAT_LABELS[mealCat] + '池）';
+    $('#mealUseBtn').hidden = false;
+    $('#mealRollBtn').textContent = '再抽一次';
+  }
+
+  function useMealPick(){
+    if (!currentPick) return;
+    $('#mealInput').value = currentPick.name;
+    $('#mealKcal').value = currentPick.kcal;
+    $('#mealHint').textContent = '已填好菜名和热量，补张照片再点「记下这顿」。';
+    $('#mealInput').focus();
+    toast('帮你填好了，可以拍照或直接记下。', 'info');
+  }
+
+  function clearMealPhoto(){
+    currentMealPhoto = null;
+    var prev = $('#mealPhotoPreview');
+    var img = $('#mealPhotoImg');
+    if (prev) prev.hidden = true;
+    if (img) img.removeAttribute('src');
+    var input = $('#mealPhotoInput');
+    if (input) input.value = '';
+  }
+
+  function handleMealPhoto(file){
+    if (!file) return;
+    if (!/^image\//.test(file.type)) {
+      toast('请选择图片文件。', 'warn');
+      return;
+    }
+    if (file.size > 15 * 1024 * 1024) {
+      toast('照片太大了，换一张小点的。', 'warn');
+      return;
+    }
+    var reader = new FileReader();
+    reader.onload = function(e){
+      var img = new Image();
+      img.onload = function(){
+        try {
+          var max = 720;
+          var scale = Math.min(1, max / Math.max(img.width, img.height));
+          var cw = Math.max(1, Math.round(img.width * scale));
+          var ch = Math.max(1, Math.round(img.height * scale));
+          var canvas = document.createElement('canvas');
+          canvas.width = cw;
+          canvas.height = ch;
+          canvas.getContext('2d').drawImage(img, 0, 0, cw, ch);
+          currentMealPhoto = canvas.toDataURL('image/jpeg', 0.72);
+          $('#mealPhotoImg').src = currentMealPhoto;
+          $('#mealPhotoPreview').hidden = false;
+          toast('照片已就位，可以记了。', 'success');
+        } catch (err) {
+          toast('照片处理失败，换一张试试。', 'warn');
+        }
+      };
+      img.onerror = function(){ toast('图片读取失败。', 'warn'); };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function saveMeal(){
+    var text = ($('#mealInput').value || '').trim();
+    var kcal = parseInt($('#mealKcal').value, 10);
+    if (!text && !currentMealPhoto) {
+      toast('至少写个菜名，或者加张照片。', 'warn');
+      return;
+    }
+    if (!text) text = '（只放了一张照片）';
+    if (!(kcal > 0)) kcal = estimateMealKcal(text);
+    var rec = {
+      ts: Date.now(),
+      text: text,
+      kcal: kcal,
+      tags: mealTagsOf(text),
+      photo: currentMealPhoto || null,
+      advice: buildMealAdvice(text, kcal)
+    };
+    state.meals = state.meals || [];
+    state.meals.push(rec);
+    if (state.meals.length > 12) {
+      state.meals = state.meals.slice(-12);
+      toast('饭账最多保留 12 顿，更早的自动清理了。', 'info');
+    }
+    clearMealPhoto();
+    $('#mealInput').value = '';
+    $('#mealKcal').value = '';
+    $('#mealHint').textContent = '记下了。写清楚点，才能给你靠谱的建议；照片只存在你的浏览器里。';
+    save();
+    renderMeals();
+    toast('记下了，健康建议在下面。', 'success');
+  }
+
+  function removeMeal(index){
+    if (!state.meals || index < 0 || index >= state.meals.length) return;
+    state.meals.splice(index, 1);
+    save();
+    renderMeals();
+    toast('这顿记录删掉了。', 'info');
+  }
+
+  function renderMeals(){
+    var list = state.meals || [];
+    var tag = $('#mealTag');
+    if (tag) tag.textContent = '已记录 ' + list.length + ' 顿';
+    var wrap = $('#mealToday');
+    if (!wrap) return;
+    wrap.innerHTML = '';
+    if (!list.length) {
+      var empty = document.createElement('div');
+      empty.className = 'empty';
+      empty.textContent = '今天还没记，吃完记得回来记一笔。';
+      wrap.appendChild(empty);
+      return;
+    }
+    var total = list.reduce(function(acc, r){ return acc + (Number(r.kcal) || 0); }, 0);
+    var summary = document.createElement('div');
+    summary.className = 'meal-summary';
+    summary.textContent = '今日已记 ' + list.length + ' 顿 · 约 ' + total + ' kcal · ' + mealSummaryAdvice(list, total);
+    wrap.appendChild(summary);
+    list.slice().reverse().forEach(function(rec, revIdx){
+      var realIndex = list.length - 1 - revIdx;
+      var row = document.createElement('div');
+      row.className = 'meal-item';
+      if (rec.photo) {
+        var img = document.createElement('img');
+        img.src = rec.photo;
+        img.alt = '本顿照片';
+        row.appendChild(img);
+      }
+      var body = document.createElement('div');
+      body.className = 'meal-item-body';
+      var head = document.createElement('div');
+      head.className = 'meal-item-head';
+      var b = document.createElement('b');
+      b.textContent = rec.text;
+      head.appendChild(b);
+      var time = document.createElement('span');
+      time.textContent = fmtClock(rec.ts);
+      head.appendChild(time);
+      body.appendChild(head);
+      var meta = document.createElement('div');
+      meta.className = 'meal-item-meta';
+      meta.textContent = '约 ' + (rec.kcal || 0) + ' kcal' + (rec.tags && rec.tags.length ? ' · ' + rec.tags.join(' / ') : '');
+      body.appendChild(meta);
+      var adv = document.createElement('div');
+      adv.className = 'meal-item-advice';
+      adv.textContent = rec.advice;
+      body.appendChild(adv);
+      row.appendChild(body);
+      var del = document.createElement('button');
+      del.type = 'button';
+      del.className = 'meal-del';
+      del.setAttribute('aria-label', '删除这顿');
+      del.innerHTML = '<svg class="icon"><use href="#i-minus"/></svg>';
+      del.addEventListener('click', function(){ removeMeal(realIndex); });
+      row.appendChild(del);
+      wrap.appendChild(row);
+    });
   }
 
   /* ---------------- actions ---------------- */
@@ -2615,6 +3026,7 @@
     renderBadges();
     renderPunch();
     renderVent();
+    renderMeals();
     updateCareHints();
   }
 
@@ -2816,6 +3228,7 @@
       '带薪如厕：' + state.toilet + ' 次 ｜ 续命咖啡：' + state.coffee + ' 杯（' + state.coffee * 80 + 'mg）',
       '带薪摸鱼：' + Math.floor(fishMsOf(state) / 60000) + ' 分钟 ｜ 护眼：' + state.eyeRest + '/3 次',
       '吐槽搭子：' + (state.ventCount || 0) + ' 次',
+      '吃饭记录：' + ((state.meals || []).length) + ' 顿 · 约 ' + (state.meals || []).reduce(function(a, r){ return a + (Number(r.kcal) || 0); }, 0) + ' kcal',
       '心情：' + (state.mood ? MOODS[state.mood] + '（' + state.mood + '/5）' : '未打卡'),
       '牛马健康分：' + scoreResult.total + ' 分 · ' + rank.title,
       '今日寄语：' + QUOTES[quoteIdx]
@@ -2884,6 +3297,24 @@
     });
     $$('#ventActions [data-quick]').forEach(function(b){
       b.addEventListener('click', function(){ ventQuick(b.getAttribute('data-quick')); });
+    });
+    $('#mealRollBtn').addEventListener('click', rollMeal);
+    $('#mealUseBtn').addEventListener('click', useMealPick);
+    $('#mealSave').addEventListener('click', saveMeal);
+    $('#mealPhotoBtn').addEventListener('click', function(){ $('#mealPhotoInput').click(); });
+    $('#mealPhotoInput').addEventListener('change', function(e){
+      handleMealPhoto(e.target.files && e.target.files[0]);
+    });
+    $('#mealPhotoClear').addEventListener('click', clearMealPhoto);
+    $('#mealInput').addEventListener('keydown', function(e){
+      if (e.key === 'Enter' && !e.isComposing) saveMeal();
+    });
+    $$('#mealCatChips button').forEach(function(b){
+      b.addEventListener('click', function(){
+        mealCat = b.getAttribute('data-cat') || 'any';
+        $$('#mealCatChips button').forEach(function(x){ x.classList.toggle('active', x === b); });
+        rollMeal();
+      });
     });
 
     $$('#rangeTabs button').forEach(function(b){
