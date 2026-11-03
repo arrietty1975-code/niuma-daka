@@ -388,6 +388,21 @@
   .vent-input button:active{transform:scale(.97)}
   .vent-chat::-webkit-scrollbar{width:6px}
   .vent-chat::-webkit-scrollbar-thumb{background:#ded5c7;border-radius:999px}
+  .vent-summary{
+    background:#fff8f1;border:1px solid #ffdcbe;border-radius:14px;padding:12px 14px;
+    margin:10px 0;font-size:12px;line-height:1.7;color:#6b4a31;
+  }
+  .vent-summary[hidden]{display:none}
+  .vent-summary-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:8px}
+  .vent-summary-head b{font-size:13px;color:#b45309}
+  .vent-summary-head span{font-size:10px;color:#a98b70}
+  .vent-topic{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+  .vent-topic > span{flex:0 0 74px;font-weight:700;font-size:11.5px}
+  .vent-topic-track{flex:1;height:7px;border-radius:999px;background:#f2e4d3;overflow:hidden}
+  .vent-topic-track i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#ffb373,#ff5a1f)}
+  .vent-topic em{flex:0 0 86px;text-align:right;font-style:normal;font-size:10.5px;color:#8a6a4e;font-variant-numeric:tabular-nums}
+  .vent-summary-note{margin-top:9px;padding-top:9px;border-top:1px dashed #f2dcc0;font-size:11.5px;color:#8a6a4e}
+  .vent-summary-note b{color:#b45309}
   @media (max-width:640px){
     .vent-actions{width:100%}
     .vent-actions .btn{flex:1;justify-content:center}
@@ -1225,9 +1240,11 @@
         <button class="btn soft small" type="button" data-quick="water">来杯水</button>
         <button class="btn soft small" type="button" data-quick="stand">起身活动</button>
         <button class="btn soft small" type="button" data-quick="fish">摸鱼 5 分钟</button>
+        <button class="btn soft small" type="button" id="ventSummaryBtn">吐槽总结</button>
       </div>
     </div>
     <p class="vent-sub">把负能量倒给我，我陪你一起骂；骂完记得喝口水、站起来，别便宜了班。</p>
+    <div class="vent-summary" id="ventSummary" hidden></div>
     <div class="vent-chat" id="ventChat">
       <div class="vent-msg buddy">
         <span class="vent-avatar">搭</span>
@@ -1530,6 +1547,7 @@
   var titleFlashText = '';
   var notifyPromptTried = false;
   var customHolidays = [];
+  var ventHistory = [];
 
   var STATIC_HOLIDAYS = [
     { name: '元旦', start: '2026-01-01', end: '2026-01-03' },
@@ -1692,6 +1710,7 @@
         if (data && data.settings) settings = Object.assign(settings, data.settings);
         if (data && data.history) history = data.history;
         if (data && Array.isArray(data.holidays)) customHolidays = data.holidays;
+        if (data && Array.isArray(data.ventHistory)) ventHistory = data.ventHistory;
         if (data && data.state && data.state.date) {
           if (data.state.date === dateKey(new Date())) {
             state = Object.assign(newDay(), data.state);
@@ -1753,7 +1772,8 @@
         settings: settings,
         state: state,
         history: history,
-        holidays: customHolidays
+        holidays: customHolidays,
+        ventHistory: ventHistory
       }));
     } catch (err) { /* storage may be unavailable */ }
   }
@@ -2106,6 +2126,8 @@
     input.value = '';
     appendVentMsg('user', text);
     state.ventCount = (state.ventCount || 0) + 1;
+    ventHistory.push({ text: text, ts: Date.now() });
+    if (ventHistory.length > 500) ventHistory = ventHistory.slice(-500);
     save();
     renderVent();
     afterVent(text);
@@ -2127,6 +2149,99 @@
   function renderVent(){
     var tag = $('#ventTag');
     if (tag) tag.textContent = '已吐槽 ' + (state.ventCount || 0) + ' 次';
+  }
+
+  /* ---------------- 吐槽总结 ---------------- */
+  var VENT_TOPIC_LABELS = {
+    boss: '老板 / 领导',
+    overtime: '加班',
+    kpi: 'KPI / 绩效',
+    salary: '工资 / 钱',
+    colleague: '同事 / 背锅',
+    client: '甲方 / 需求',
+    meeting: '开会',
+    quit: '离职',
+    tired: '累 / 身体',
+    stress: '压力 / 情绪'
+  };
+
+  function buildVentSummary(){
+    var recent = ventHistory.slice(-100);
+    if (!recent.length) {
+      return '<div class="vent-summary-note">还没有吐槽记录，先吐两句，我就能帮你总结人生了。</div>';
+    }
+    var counts = {};
+    var unmatched = 0;
+    recent.forEach(function(item){
+      var lower = String(item.text || '').toLowerCase();
+      var matched = false;
+      for (var i = 0; i < VENT_CATS.length; i++) {
+        var cat = VENT_CATS[i];
+        for (var j = 0; j < cat.keys.length; j++) {
+          if (lower.indexOf(cat.keys[j]) !== -1) {
+            counts[cat.name] = (counts[cat.name] || 0) + 1;
+            matched = true;
+            break;
+          }
+        }
+        if (matched) break;
+      }
+      if (!matched) unmatched++;
+    });
+    var rows = [];
+    Object.keys(counts).forEach(function(k){ rows.push({ name: k, count: counts[k] }); });
+    rows.sort(function(a, b){ return b.count - a.count; });
+    var max = rows.length ? rows[0].count : 1;
+    var n = recent.length;
+
+    var freq = {};
+    var topWord = null;
+    var topCount = 0;
+    recent.forEach(function(item){
+      var t = String(item.text || '').trim();
+      freq[t] = (freq[t] || 0) + 1;
+      if (freq[t] > topCount) { topCount = freq[t]; topWord = t; }
+    });
+
+    var html = '<div class="vent-summary-head"><b>你的吐槽画像</b><span>最近 ' + n + ' 句</span></div>';
+    rows.forEach(function(row){
+      var pct = Math.round(row.count / n * 100);
+      html += '<div class="vent-topic"><span>' + (VENT_TOPIC_LABELS[row.name] || row.name) + '</span>' +
+        '<div class="vent-topic-track"><i style="width:' + Math.round(row.count / max * 100) + '%"></i></div>' +
+        '<em>' + row.count + ' 次 · ' + pct + '%</em></div>';
+    });
+    if (unmatched) {
+      html += '<div class="vent-topic"><span>其他</span><div class="vent-topic-track"><i style="width:' + Math.round(unmatched / max * 100) + '%"></i></div><em>' + unmatched + ' 次 · ' + Math.round(unmatched / n * 100) + '%</em></div>';
+    }
+    var note;
+    if (rows.length) {
+      var topName = VENT_TOPIC_LABELS[rows[0].name] || rows[0].name;
+      note = '压力主要来自：<b>' + topName + '</b>（' + rows[0].count + ' 次）。';
+    } else {
+      note = '最近的吐槽比较分散，看来是全面开花。';
+    }
+    if (topCount >= 2 && topWord) {
+      note += '<br>最常说的那句：「' + weatherEsc(topWord) + '」说了 ' + topCount + ' 次。';
+    } else {
+      note += '<br>排在前面的心愿：少加点班、早点下班、正常放假。';
+    }
+    note += '<br>吐完了记得喝口水、起身活动两分钟，别让这些气住进身体里。';
+    html += '<div class="vent-summary-note">' + note + '</div>';
+    return html;
+  }
+
+  function toggleVentSummary(){
+    var box = $('#ventSummary');
+    var btn = $('#ventSummaryBtn');
+    if (!box) return;
+    if (box.hidden) {
+      box.innerHTML = buildVentSummary();
+      box.hidden = false;
+      if (btn) btn.textContent = '收起总结';
+    } else {
+      box.hidden = true;
+      if (btn) btn.textContent = '吐槽总结';
+    }
   }
 
   /* ---------------- 吃饭搭子 ---------------- */
@@ -3940,6 +4055,7 @@
     $('#careSecondary').addEventListener('click', snoozeCareAlert);
     $('#ventSend').addEventListener('click', sendVent);
     $('#ventInput').addEventListener('keydown', function(e){ if (e.key === 'Enter') sendVent(); });
+    $('#ventSummaryBtn').addEventListener('click', toggleVentSummary);
     $$('#ventChips button').forEach(function(b){
       b.addEventListener('click', function(){
         $('#ventInput').value = b.getAttribute('data-q');
