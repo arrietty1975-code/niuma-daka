@@ -628,6 +628,7 @@
   .weather-temp{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:38px;font-weight:800;line-height:1;color:#1d4ed8;font-variant-numeric:tabular-nums}
   .weather-temp span{display:block;font-size:11px;font-weight:600;color:var(--muted);margin-top:2px}
   .weather-meta{font-size:10.5px;color:var(--muted);margin-top:6px;line-height:1.6}
+  .weather-note{font-size:11px;color:#7a6a96;margin-top:7px;line-height:1.6;font-style:italic}
   .weather-advice{display:grid;grid-template-columns:1fr 1fr;gap:10px}
   .advice-card{background:#f8f4ed;border:1px solid var(--line);border-radius:14px;padding:12px 14px}
   .advice-card h5{margin:0 0 6px;font-size:12px;font-weight:800;display:flex;align-items:center;gap:6px}
@@ -2882,29 +2883,44 @@
     return { k: 'overcast', label: '阴' };
   }
 
+  function weatherPrairieQuip(kind, t){
+    if (kind === 'sun') return '大晴天正适合撒野，可惜只能在工位前走两步，凑合当大草原。';
+    if (kind === 'rain') return '下雨了，草原变水塘，牛马别去踩泥，屋里喝水最香。';
+    if (kind === 'snow') return '下雪了，草原一片白，是牛马最爱的躺平色，出门记得防滑。';
+    if (kind === 'thunder') return '打雷了，草原上的牛马都躲起来了，咱也回屋里苟着。';
+    if (kind === 'fog') return '雾大看不见草原的路，牛马别瞎跑，出行注意安全。';
+    if (t >= 32) return '这温度，草原都要烤糊了，牛马只配在空调房里续命。';
+    if (t <= 0) return '冷到草原都结冰，牛马裹紧自己，多喝热水别冻着。';
+    if (kind === 'cloud' || kind === 'overcast') return '不晒不凉，出门遛两圈，假装自己是一匹在草原上驰骋的牛马。';
+    if (t <= 8) return '有点凉，草原的风最会教做人，多穿点再出门。';
+    return '牛马的心在草原，身体在工位；今天也分批撒野吧，渴望着大草原。';
+  }
+
   function adviseDo(kind, t, c){
-    if (c.precipitation > 0) return '今天有降水，适合室内活动；要出门记得带伞，鞋穿防水的。';
-    if (kind === 'snow') return '下雪路面滑，少出门别走太快，室内拉伸、热饮更适合今天的牛马。';
-    if (kind === 'rain') return '下雨天适合室内；通勤早点出门，带伞，别淋着。';
-    if (kind === 'thunder') return '有雷雨，别在露天逗留，室内待着最安全。';
-    if (kind === 'fog') return '有雾能见度低，出行注意安全，运动选室内。';
-    if (kind === 'sun') return '天气不错，适合午休出去走两步、晒晒太阳，下午别一直坐着。';
-    if (kind === 'cloud' || kind === 'overcast') return '不晒不热，适合散步和户外活动，也适合在工位间隙站起来活动。';
-    return '今天天空比较平静，室内户外看心情，动一动总比不动强。';
+    if (c.precipitation > 0) return '有降水，草原都湿透了，牛马少出门，记得带伞，鞋防水的。';
+    if (kind === 'snow') return '下雪别出门撒野，路滑摔了不划算；屋里喝水拉伸，安全看工位外的雪。';
+    if (kind === 'rain') return '下雨天适合室内摸鱼式活动，出门带伞，别让草原的雨白了头。';
+    if (kind === 'thunder') return '雷雨别在露天晃，回屋里待着，牛命要紧。';
+    if (kind === 'fog') return '有雾能见度低，别急着奔草原，运动选室内最稳。';
+    if (kind === 'sun') return '大晴天，草原在召唤，可惜工位不放人；午休出去走两步，也算驰骋过了。';
+    if (kind === 'cloud' || kind === 'overcast') return '不晒不热，适合散步放风，假装自己正在草原上缓缓吃草。';
+    if (t >= 32) return '太热了，草原都要冒烟，别硬晒，空调房里做牛做马最舒服。';
+    if (t <= 0) return '天冷别冻着，室内活动、多喝热水，草原改天再去。';
+    return '天气普通的一天，室内户外随缘，动一动总比趴着强，草原在心里就行。';
   }
 
   function adviseWear(t, kind, c){
     var wear;
-    if (t <= -10) wear = '羽绒服 + 厚毛衣 + 加绒裤 + 棉靴，围巾手套都安排上。';
-    else if (t <= 0) wear = '厚羽绒服 + 毛线衫 + 厚裤，别为了好看少穿。';
-    else if (t <= 8) wear = '羽绒服 / 厚外套 + 毛衣 + 长裤，怕冷就加条秋裤。';
-    else if (t <= 15) wear = '大衣 / 夹克 + 长袖 + 长裤，早晚温差大备件薄外套。';
-    else if (t <= 21) wear = '外套 / 卫衣 + 长袖或短袖，办公室备件薄衫抗空调。';
-    else if (t <= 27) wear = '短袖或薄长袖 + 薄裤，怕空调就带件薄外套。';
-    else if (t <= 32) wear = '短袖 + 短裤 / 裙装，防晒帽和墨镜安排上。';
-    else wear = '能少穿就少穿，透气短袖 + 防晒，别硬晒。';
-    if (c.precipitation > 0 || kind === 'rain' || kind === 'snow' || kind === 'thunder') wear += ' 记得带伞 / 雨具。';
-    if (c.wind_speed_10m > 8) wear += ' 风不小，加件防风外套。';
+    if (t <= -10) wear = '这么冷，羽绒服 + 厚毛衣 + 加绒裤 + 棉靴全套，别学牛马裸奔。';
+    else if (t <= 0) wear = '厚羽绒服 + 毛线衫 + 厚裤，保暖要紧，草原的风不客气。';
+    else if (t <= 8) wear = '羽绒服 / 厚外套 + 毛衣 + 长裤，怕冷加条秋裤，牛马也怕冻。';
+    else if (t <= 15) wear = '大衣 / 夹克 + 长袖 + 长裤，早晚温差大，备件薄外套防草原偷袭。';
+    else if (t <= 21) wear = '卫衣 / 外套 + 长袖或短袖，办公室备件薄衫，抗空调的牛马专用。';
+    else if (t <= 27) wear = '短袖或薄长袖 + 薄裤，别再揣秋裤了，牛马也要透气。';
+    else if (t <= 32) wear = '短袖 + 短裤 / 裙装，防晒帽墨镜戴上，别晒成干巴牛马。';
+    else wear = '能少穿就少穿，透气短袖 + 防晒，别硬扛，命和肤色都重要。';
+    if (c.precipitation > 0 || kind === 'rain' || kind === 'snow' || kind === 'thunder') wear += ' 记得带伞 / 雨具，别淋成水牛。';
+    if (c.wind_speed_10m > 8) wear += ' 风不小，加件防风外套，草原的风不背锅。';
     return wear;
   }
 
@@ -2925,6 +2941,7 @@
           '<div>' +
             '<div class="weather-temp">' + t + '°<span>体感 ' + feels + '°</span></div>' +
             '<div class="weather-meta">' + weatherEsc(name) + ' · 湿度 ' + Math.round(c.relative_humidity_2m) + '% · 风速 ' + Math.round(c.wind_speed_10m) + ' km/h</div>' +
+            '<div class="weather-note" id="weatherNote"></div>' +
           '</div>' +
         '</div>' +
         '<div class="weather-advice">' +
@@ -2932,6 +2949,8 @@
           '<div class="advice-card wear"><h5>适合穿什么</h5><p>' + adviseWear(t, wd.k, c) + '</p></div>' +
         '</div>' +
       '</div>';
+    var note = $('#weatherNote');
+    if (note) note.textContent = weatherPrairieQuip(wd.k, t);
   }
 
   function onWeatherFail(){
