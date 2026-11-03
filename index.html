@@ -586,6 +586,45 @@
     font-weight:700;padding:9px 16px;cursor:pointer;font-size:12.5px;
   }
   .holiday-custom button:active{transform:scale(.97)}
+  .holiday-cal-wrap{margin-top:16px;border-top:1px dashed var(--line);padding-top:12px}
+  .cal-head{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+  .cal-nav{
+    width:28px;height:28px;border-radius:9px;border:1px solid var(--line);background:#fff;
+    color:var(--muted);cursor:pointer;font-size:16px;line-height:1;flex:none;
+  }
+  .cal-nav:hover{color:var(--orange);border-color:#ffc4a6}
+  #calTitle{font-size:13px;font-weight:800;flex:1;text-align:center;letter-spacing:.02em}
+  .cal-legend{display:inline-flex;gap:12px;font-size:10px;color:var(--muted);flex:none}
+  .cal-legend i{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:4px;vertical-align:-1px}
+  .cal-legend .lg-holiday{background:var(--orange-soft);border:1px solid #ffc4a6}
+  .cal-legend .lg-today{background:#fff;border:1px solid var(--orange)}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+  .cal-wd{text-align:center;font-size:10px;color:var(--muted);padding:2px 0}
+  .cal-cell{
+    position:relative;min-height:46px;border-radius:10px;border:1px solid transparent;
+    padding:6px 3px;text-align:center;font-size:12px;color:var(--ink);
+  }
+  .cal-cell .cal-day{font-variant-numeric:tabular-nums;font-weight:600}
+  .cal-cell.is-holiday{background:var(--orange-soft);border-color:#ffc4a6;color:var(--orange-deep)}
+  .cal-cell.is-today{box-shadow:inset 0 0 0 2px var(--orange);font-weight:800}
+  .cal-cell.is-past{opacity:.42}
+  .cal-cell.is-past.is-holiday{opacity:.6}
+  .cal-cell .cal-left{
+    position:absolute;top:3px;right:4px;font-size:8px;line-height:1;color:#e8470f;font-weight:700;
+  }
+  .cal-cell .cal-name{
+    position:absolute;left:3px;right:3px;top:24px;font-size:8px;line-height:1;white-space:nowrap;
+    overflow:hidden;text-overflow:ellipsis;color:#b45309;font-weight:700;
+  }
+  .cal-cell .cal-dot{
+    position:absolute;left:50%;transform:translateX(-50%);top:25px;width:4px;height:4px;border-radius:50%;background:#ff7a4c;
+  }
+  .cal-blank{visibility:hidden}
+  @media (max-width:480px){
+    .cal-cell{min-height:42px;padding:5px 2px}
+    #calTitle{font-size:12px}
+    .cal-legend{display:none}
+  }
   @media (max-width:720px){
     .holiday-body{grid-template-columns:1fr}
     .holiday-custom input[type="date"]{flex:1 1 46%}
@@ -1028,6 +1067,15 @@
         <input id="holidayEnd" type="date" aria-label="结束日期">
         <button id="holidayAdd" type="button">记录</button>
       </div>
+    </div>
+    <div class="holiday-cal-wrap">
+      <div class="cal-head">
+        <button class="cal-nav" id="calPrev" type="button" aria-label="上个月">‹</button>
+        <span id="calTitle">--</span>
+        <button class="cal-nav" id="calNext" type="button" aria-label="下个月">›</button>
+        <span class="cal-legend"><i class="lg-holiday"></i>放假<i class="lg-today"></i>今天</span>
+      </div>
+      <div class="cal-grid" id="calGrid"></div>
     </div>
   </section>
 
@@ -2692,6 +2740,74 @@
   }
 
   /* ---------------- 放假倒计时 ---------------- */
+  var calYear = new Date().getFullYear();
+  var calMonth = new Date().getMonth();
+  var CAL_HEADERS = ['日', '一', '二', '三', '四', '五', '六'];
+
+  function holidayInfoForDate(d){
+    var ts = d.getTime();
+    var ranges = STATIC_HOLIDAYS.concat(customHolidays);
+    for (var i = 0; i < ranges.length; i++) {
+      var s = new Date(ranges[i].start + 'T00:00:00').getTime();
+      var e = new Date(ranges[i].end + 'T00:00:00').getTime();
+      if (ts >= s && ts <= e) {
+        return { name: ranges[i].name, startTs: s, endTs: e, custom: !!ranges[i].custom };
+      }
+    }
+    return null;
+  }
+
+  function dayStartTs(d){
+    var x = new Date(d);
+    x.setHours(0, 0, 0, 0);
+    return x.getTime();
+  }
+
+  function renderCalendar(now){
+    now = now || Date.now();
+    var grid = $('#calGrid');
+    var title = $('#calTitle');
+    if (!grid) return;
+    if (title) title.textContent = calYear + '年' + (calMonth + 1) + '月';
+    var first = new Date(calYear, calMonth, 1);
+    var startWd = first.getDay();
+    var daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+    var todayKey = dateKey(new Date(now));
+    var todayStart = dayStartTs(new Date(now));
+    var html = '';
+    CAL_HEADERS.forEach(function(w){ html += '<div class="cal-wd">' + w + '</div>'; });
+    for (var p = 0; p < startWd; p++) html += '<div class="cal-cell is-blank"></div>';
+    for (var day = 1; day <= daysInMonth; day++) {
+      var d = new Date(calYear, calMonth, day);
+      var key = dateKey(d);
+      var info = holidayInfoForDate(d);
+      var cls = 'cal-cell';
+      if (info) cls += ' is-holiday';
+      if (key === todayKey) cls += ' is-today';
+      if (d.getTime() < todayStart) cls += ' is-past';
+      var inner = '<span class="cal-day">' + day + '</span>';
+      if (info) {
+        var startKey = dateKey(new Date(info.startTs));
+        if (key === startKey) {
+          var daysLeft = Math.ceil((info.startTs - todayStart) / 86400000);
+          if (daysLeft > 0) inner += '<em class="cal-left">' + daysLeft + '天后</em>';
+          inner += '<b class="cal-name">' + info.name + '</b>';
+        } else {
+          inner += '<i class="cal-dot"></i>';
+        }
+      }
+      html += '<div class="' + cls + '" title="' + key + (info ? ' · ' + info.name : '') + '">' + inner + '</div>';
+    }
+    grid.innerHTML = html;
+  }
+
+  function calNav(dir){
+    var m = calMonth + dir;
+    calYear = calYear + Math.floor(m / 12);
+    calMonth = ((m % 12) + 12) % 12;
+    renderCalendar();
+  }
+
   function nextHolidayInfo(now){
     var items = [];
     STATIC_HOLIDAYS.concat(customHolidays).forEach(function(h){
@@ -2842,6 +2958,7 @@
     save();
     renderHolidayList();
     updateHoliday(Date.now());
+    renderCalendar(Date.now());
     toast('记下了：' + name + ' ' + start + ' ~ ' + end, 'success');
   }
 
@@ -2856,6 +2973,7 @@
     save();
     renderHolidayList();
     updateHoliday(Date.now());
+    renderCalendar(Date.now());
     toast('这个自定义假期删掉了。', 'info');
   }
 
@@ -4208,6 +4326,8 @@
       b.addEventListener('click', function(){ selectExerciseType(b.getAttribute('data-ex')); });
     });
     $('#holidayAdd').addEventListener('click', addCustomHoliday);
+    $('#calPrev').addEventListener('click', function(){ calNav(-1); });
+    $('#calNext').addEventListener('click', function(){ calNav(1); });
     $('#weatherGo').addEventListener('click', function(){ fetchWeather($('#weatherCity').value); });
     $('#weatherLoc').addEventListener('click', locateWeather);
     $('#weatherCity').addEventListener('keydown', function(e){
@@ -4285,6 +4405,7 @@
       $('#weatherCity').value = settings.city;
       fetchWeather(settings.city);
     }
+    renderCalendar(Date.now());
   }
 
   init();
