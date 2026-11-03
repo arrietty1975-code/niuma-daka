@@ -648,6 +648,11 @@
   .seg button:hover{color:var(--ink)}
   .seg button.active{background:#fff;color:var(--ink);box-shadow:0 2px 6px rgba(28,27,25,.08)}
   .hist-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:4px 0 16px}
+  .hist-extra{grid-template-columns:repeat(4,1fr);margin-top:0}
+  .hist-extra .sum-card{padding:9px 11px}
+  .hist-extra .sum-card span{font-size:9.5px}
+  .hist-extra .sum-card b{font-size:16px;margin-top:2px}
+  .hist-extra .sum-card em{font-size:9px}
   .sum-card{background:#f8f4ed;border:1px solid var(--line);border-radius:14px;padding:12px 14px;min-width:0}
   .sum-card span{display:block;font-size:10px;color:var(--muted);letter-spacing:.04em}
   .sum-card b{display:block;font-size:21px;font-weight:800;letter-spacing:-.03em;margin-top:3px;font-variant-numeric:tabular-nums}
@@ -1388,6 +1393,7 @@
     </div>
 
     <div class="hist-summary" id="histSummary"></div>
+    <div class="hist-summary hist-extra" id="histExtra"></div>
 
     <div class="hist-chart-wrap">
       <div class="hist-chart" id="histChart"></div>
@@ -1688,6 +1694,11 @@
 
   function summarize(s){
     var now = Date.now();
+    var meals = s.meals || [];
+    var exercises = s.exercises || [];
+    var mealKcal = meals.reduce(function(a, m){ return a + (Number(m.kcal) || 0); }, 0);
+    var exerciseMin = exercises.reduce(function(a, m){ return a + (Number(m.minutes) || 0); }, 0);
+    var exerciseKcal = exercises.reduce(function(a, m){ return a + (Number(m.kcal) || 0); }, 0);
     return {
       water: s.water || 0,
       toilet: s.toilet || 0,
@@ -1697,6 +1708,12 @@
       stands: s.standCount || 0,
       fish: Math.round(fishMsOf(s, now) / 60000),
       sits: Math.round(sitMsOf(s, now) / 60000),
+      vent: s.ventCount || 0,
+      meals: meals.length,
+      mealKcal: mealKcal,
+      exercise: exercises.length,
+      exerciseMin: exerciseMin,
+      exerciseKcal: exerciseKcal,
       score: typeof s.lastScore === 'number' ? s.lastScore : calcScore(s, now).total
     };
   }
@@ -3503,7 +3520,8 @@
 
   function isActiveRec(r){
     return !!r && (r.water > 0 || r.toilet > 0 || r.coffee > 0 || r.eye > 0 || r.mood > 0 ||
-      r.stands > 0 || r.fish > 0 || r.sits > 0 || r.score > 0);
+      r.stands > 0 || r.fish > 0 || r.sits > 0 || r.score > 0 ||
+      r.vent > 0 || r.meals > 0 || r.exerciseMin > 0);
   }
 
   function getRecordMap(){
@@ -3529,6 +3547,8 @@
     function sum(key){
       return active.reduce(function(acc, r){ return acc + (Number(r[key]) || 0); }, 0);
     }
+    var moodDays = active.filter(function(r){ return (Number(r.mood) || 0) > 0; }).length;
+    var moodSum = sum('mood');
     return {
       days: n,
       active: n > 0,
@@ -3540,6 +3560,13 @@
       coffee: sum('coffee'),
       fish: sum('fish'),
       eye: sum('eye'),
+      vent: n ? sum('vent') / n : 0,
+      meals: n ? sum('meals') / n : 0,
+      mealKcal: n ? sum('mealKcal') / n : 0,
+      exercise: n ? sum('exercise') / n : 0,
+      exerciseMin: sum('exerciseMin'),
+      exerciseKcal: sum('exerciseKcal'),
+      moodAvg: moodDays ? (moodSum / moodDays) : 0,
       totalWater: sum('water'),
       totalSits: sum('sits')
     };
@@ -3635,6 +3662,17 @@
       '<div class="sum-card"><span>日均喝水</span><b>' + (totals.active ? totals.water.toFixed(1) + ' 杯' : '—') + '</b><em>目标 ' + settings.waterGoal + ' 杯 / 天</em></div>' +
       '<div class="sum-card"><span>日均久坐</span><b>' + (totals.active ? Math.round(totals.sits) + ' 分' : '—') + '</b><em>起身共 ' + totals.stands + ' 次</em></div>';
 
+    var days = Math.max(1, totals.days);
+    $('#histExtra').innerHTML =
+      '<div class="sum-card"><span>带薪如厕</span><b>' + (totals.active ? (totals.toilet / days).toFixed(1) + ' 次' : '—') + '</b><em>日均 / 天</em></div>' +
+      '<div class="sum-card"><span>续命咖啡</span><b>' + (totals.active ? (totals.coffee / days).toFixed(1) + ' 杯' : '—') + '</b><em>日均 / 天</em></div>' +
+      '<div class="sum-card"><span>带薪摸鱼</span><b>' + (totals.active ? (totals.fish / days).toFixed(1) + ' 分' : '—') + '</b><em>日均 / 天</em></div>' +
+      '<div class="sum-card"><span>护眼</span><b>' + (totals.active ? (totals.eye / days).toFixed(1) + ' 次' : '—') + '</b><em>日均 / 天</em></div>' +
+      '<div class="sum-card"><span>心情</span><b>' + (totals.moodAvg ? totals.moodAvg.toFixed(1) : '—') + '</b><em>/ 5 分</em></div>' +
+      '<div class="sum-card"><span>运动</span><b>' + (totals.active ? Math.round(totals.exerciseMin / days) + ' 分' : '—') + '</b><em>共 ' + totals.exercise.toFixed(1) + ' 次 / 天</em></div>' +
+      '<div class="sum-card"><span>吃饭</span><b>' + (totals.active ? totals.meals.toFixed(1) + ' 顿' : '—') + '</b><em>约 ' + (totals.active ? Math.round(totals.mealKcal) : 0) + ' kcal / 天</em></div>' +
+      '<div class="sum-card"><span>吐槽</span><b>' + (totals.active ? totals.vent.toFixed(1) + ' 次' : '—') + '</b><em>日均 / 天</em></div>';
+
     var chart = $('#histChart');
     chart.innerHTML = '';
     periods.forEach(function(p){
@@ -3682,8 +3720,8 @@
     var table = $('#histTable');
     var daily = histRange === 'day7';
     var head = daily
-      ? ['日期', '喝水', '起身', '久坐', '如厕', '咖啡', '摸鱼', '护眼', '健康分']
-      : ['周期', '记录天数', '日均喝水', '日均久坐', '总起身', '平均分'];
+      ? ['日期', '喝水', '起身', '久坐', '如厕', '咖啡', '摸鱼', '护眼', '吃饭', '运动', '吐槽', '健康分']
+      : ['周期', '记录天数', '日均喝水', '日均久坐', '总起身', '日均运动', '日均吃饭', '日均吐槽', '平均分'];
     var html = '<thead><tr>';
     head.forEach(function(h){ html += '<th>' + h + '</th>'; });
     html += '</tr></thead><tbody>';
@@ -3700,6 +3738,9 @@
         html += '<td>' + (a.active ? a.coffee + ' 杯' : '<span class="muted">—</span>') + '</td>';
         html += '<td>' + (a.active ? a.fish + ' 分' : '<span class="muted">—</span>') + '</td>';
         html += '<td>' + (a.active ? a.eye + ' 次' : '<span class="muted">—</span>') + '</td>';
+        html += '<td>' + (a.active ? Math.round(a.meals) + ' 顿' : '<span class="muted">—</span>') + '</td>';
+        html += '<td>' + (a.active ? Math.round(a.exercise) + ' 次·' + Math.round(a.exerciseMin) + ' 分' : '<span class="muted">—</span>') + '</td>';
+        html += '<td>' + (a.active ? Math.round(a.vent) + ' 次' : '<span class="muted">—</span>') + '</td>';
         html += '<td>' + (a.active ? Math.round(a.score) : '<span class="muted">—</span>') + '</td>';
       } else {
         html += '<td>' + p.label + (p.sub ? '<span class="muted" style="font-weight:400"> · ' + p.sub + '</span>' : '') + '</td>';
@@ -3707,6 +3748,9 @@
         html += '<td>' + (a.active ? a.water.toFixed(1) + ' 杯' : '<span class="muted">—</span>') + '</td>';
         html += '<td>' + (a.active ? Math.round(a.sits) + ' 分' : '<span class="muted">—</span>') + '</td>';
         html += '<td>' + (a.stands || 0) + ' 次</td>';
+        html += '<td>' + (a.active ? Math.round(a.exerciseMin / Math.max(1, a.days)) + ' 分' : '<span class="muted">—</span>') + '</td>';
+        html += '<td>' + (a.active ? a.meals.toFixed(1) + ' 顿' : '<span class="muted">—</span>') + '</td>';
+        html += '<td>' + (a.active ? a.vent.toFixed(1) + ' 次' : '<span class="muted">—</span>') + '</td>';
         html += '<td>' + (a.active ? Math.round(a.score) : '<span class="muted">—</span>') + '</td>';
       }
       html += '</tr>';
