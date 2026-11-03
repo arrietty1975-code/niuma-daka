@@ -555,6 +555,11 @@
     color:#c2410c;font-variant-numeric:tabular-nums;line-height:1.15;margin:2px 0 4px;
   }
   .holiday-sub{font-size:11.5px;color:#9a6a45;line-height:1.5}
+  .holiday-week{
+    font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:12px;font-weight:700;color:#a05c2c;
+    margin:0 0 2px;font-variant-numeric:tabular-nums;
+  }
+  .holiday-quip{font-size:11px;color:#b0784a;line-height:1.5;margin-top:5px;font-style:italic}
   .holiday-list{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;align-content:center}
   .holiday-chip{
     display:inline-flex;align-items:center;gap:6px;background:#fff;border:1px solid #f0dcc4;
@@ -1014,7 +1019,9 @@
       <div class="holiday-hero">
         <div class="holiday-label" id="holidayLabel">距离放假还有</div>
         <div class="holiday-count" id="holidayCount">--</div>
+        <div class="holiday-week" id="holidayWeek"></div>
         <div class="holiday-sub" id="holidaySub">--</div>
+        <div class="holiday-quip" id="holidayQuip"></div>
       </div>
       <div class="holiday-list" id="holidayList"></div>
       <div class="holiday-custom">
@@ -2704,12 +2711,16 @@
     var label = $('#holidayLabel');
     var sub = $('#holidaySub');
     var tag = $('#holidayTag');
+    var weekEl = $('#holidayWeek');
+    var quipEl = $('#holidayQuip');
     if (!count) return;
     var next = items && items[0];
     if (!next) {
       label.textContent = '距离放假还有';
       count.textContent = '--';
+      if (weekEl) weekEl.textContent = '';
       sub.textContent = '暂无已知假期，可以自己添加请假 / 调休日期。';
+      if (quipEl) quipEl.textContent = '没有盼头的牛马，和咸鱼有什么区别？';
       if (tag) { tag.textContent = '未知'; tag.className = 'tag'; }
       return;
     }
@@ -2719,6 +2730,18 @@
     var mm = Math.floor((ms % 3600000) / 60000);
     var ss = Math.floor((ms % 60000) / 1000);
     var fmt = d + ' 天 ' + pad(hh) + ':' + pad(mm) + ':' + pad(ss);
+    var weeks = Math.floor(d / 7);
+    var weekDays = d % 7;
+    var weekTxt = '';
+    if (d > 0) {
+      weekTxt = '≈ ' + (weeks > 0 ? weeks + ' 周' : '') + (weekDays > 0 ? ' ' + weekDays + ' 天' : '');
+      if (weeks === 0 && weekDays === 0) weekTxt = '';
+    } else {
+      weekTxt = '就是今天';
+    }
+    if (weekEl) weekEl.textContent = weekTxt;
+    var quip = holidayQuipFor(d, now >= next.startTs);
+    if (quipEl) quipEl.textContent = quip;
     if (now >= next.startTs) {
       label.textContent = '正在放假 · 还能休息';
       count.textContent = fmt;
@@ -2732,6 +2755,41 @@
       }
     }
     sub.textContent = next.name + ' · ' + next.start + ' ~ ' + next.end + (next.custom ? '（自定义）' : '');
+  }
+
+  var holidayQuipCache = { key: '', text: '' };
+  var HOLIDAY_QUIPS_NEAR = [
+    '快了快了，肉眼可见。',
+    '假期的脚步声已经传进耳朵了。',
+    '这几天上班，魂已经先放假了。',
+    '忍住别笑，尤其是当着老板的面。'
+  ];
+  var HOLIDAY_QUIPS_MID = [
+    '胜利在望，牙关咬紧，别倒在黎明前。',
+    '距离“痛并快乐着”已经不远了。',
+    '先让 KPI 喘口气，过些天就是自由人。',
+    '数着数着，总感觉是在帮老板数钱。'
+  ];
+  var HOLIDAY_QUIPS_FAR = [
+    '日子还长，牛马不死，梦想不灭。',
+    '先忍忍，生活不止眼前的苟且，还有后头的假期。',
+    '这段时间，就靠把日历当屏保过了。',
+    '远方不远，熬过这阵子，工位就离自由很近。'
+  ];
+  var HOLIDAY_QUIPS_ON = [
+    '放假了，就问你爽不爽？',
+    '假期第一天的牛马，走路都带风。',
+    '好好歇着，回来还是一匹好牛马。',
+    '放假多久，人模人样多久。'
+  ];
+  function holidayQuipFor(days, ongoing){
+    var bucket = ongoing ? HOLIDAY_QUIPS_ON : (days <= 6 ? HOLIDAY_QUIPS_NEAR : (days <= 30 ? HOLIDAY_QUIPS_MID : HOLIDAY_QUIPS_FAR));
+    var key = bucket === HOLIDAY_QUIPS_ON ? 'on' : (bucket === HOLIDAY_QUIPS_NEAR ? 'near' : (bucket === HOLIDAY_QUIPS_MID ? 'mid' : 'far'));
+    if (holidayQuipCache.key !== key) {
+      holidayQuipCache.key = key;
+      holidayQuipCache.text = bucket[Math.floor(Math.random() * bucket.length)];
+    }
+    return holidayQuipCache.text;
   }
 
   function renderHolidayList(){
