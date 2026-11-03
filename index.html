@@ -574,6 +574,54 @@
     .holiday-custom input[type="date"]{flex:1 1 46%}
   }
 
+  /* weather */
+  .weather-panel{margin-top:15px;min-height:0}
+  .weather-citybar{display:inline-flex;gap:6px;align-items:center;flex:none}
+  .weather-citybar input{
+    border:1.5px solid var(--line);border-radius:10px;padding:7px 10px;font:inherit;
+    font-size:12px;outline:none;background:#fff;color:var(--ink);width:118px;
+  }
+  .weather-citybar input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(47,107,255,.12)}
+  .weather-citybar button{
+    border:none;border-radius:10px;background:#f2ece3;color:var(--ink);font-weight:700;
+    padding:7px 10px;cursor:pointer;font-size:12px;
+  }
+  .weather-citybar button:hover{background:#eae2d6}
+  .weather-body{margin-top:10px}
+  .weather-empty{font-size:12px;color:var(--muted);text-align:center;padding:22px 0}
+  .weather-grid{display:grid;grid-template-columns:300px 1fr;gap:12px;align-items:stretch}
+  .weather-main{
+    display:flex;align-items:center;gap:12px;background:linear-gradient(180deg,#f2f8ff,#fff);
+    border:1px solid #dfe9f5;border-radius:16px;padding:14px 16px;
+  }
+  .weather-badge{
+    width:58px;height:58px;border-radius:50%;display:grid;place-items:center;flex:none;
+    font-size:21px;font-weight:800;
+  }
+  .weather-badge.sun{background:#fff3d6;color:#b45309}
+  .weather-badge.cloud{background:#e8edf5;color:#475569}
+  .weather-badge.overcast{background:#e5eaf2;color:#64748b}
+  .weather-badge.rain{background:#dbeafe;color:#1d4ed8}
+  .weather-badge.snow{background:#ecfeff;color:#0e7490}
+  .weather-badge.fog{background:#e2e8f0;color:#64748b}
+  .weather-badge.thunder{background:#ede9fe;color:#6d28d9}
+  .weather-temp{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:38px;font-weight:800;line-height:1;color:#1d4ed8;font-variant-numeric:tabular-nums}
+  .weather-temp span{display:block;font-size:11px;font-weight:600;color:var(--muted);margin-top:2px}
+  .weather-meta{font-size:10.5px;color:var(--muted);margin-top:6px;line-height:1.6}
+  .weather-advice{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .advice-card{background:#f8f4ed;border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+  .advice-card h5{margin:0 0 6px;font-size:12px;font-weight:800;display:flex;align-items:center;gap:6px}
+  .advice-card h5::before{content:"";width:8px;height:8px;border-radius:3px;background:var(--orange)}
+  .advice-card.do h5::before{background:#2f6bff}
+  .advice-card p{margin:0;font-size:12px;line-height:1.7;color:#56503f}
+  .advice-card.wear h5::before{background:#0fa968}
+  @media (max-width:820px){
+    .weather-citybar{margin-top:8px;width:100%}
+    .weather-citybar input{flex:1}
+    .weather-grid{grid-template-columns:1fr}
+    .weather-advice{grid-template-columns:1fr}
+  }
+
   /* history */
   .history-panel{margin-top:15px;min-height:0}
   .history-panel .panel-head{flex-wrap:wrap;row-gap:8px}
@@ -860,6 +908,7 @@
   <symbol id="i-camera" viewBox="0 0 24 24"><path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.5" r="3.5"/></symbol>
   <symbol id="i-dumbbell" viewBox="0 0 24 24"><path d="M7 8v8M4.5 9.5v5M17 8v8M19.5 9.5v5"/><path d="M7 12h10M2.5 12h2M19.5 12h2"/></symbol>
   <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 9.5h17"/><path d="M8 3v3.5M16 3v3.5"/><path d="M8 13.5h.01M12 13.5h.01M16 13.5h.01M8 17h.01M12 17h.01"/></symbol>
+  <symbol id="i-cloud" viewBox="0 0 24 24"><path d="M7.5 18.5a4.2 4.2 0 0 1-.3-8.4A5.8 5.8 0 0 1 17.7 9a3.7 3.7 0 0 1 .3 9.5H7.5z"/></symbol>
   <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M15.5 6.5V5A1.5 1.5 0 0 0 14 3.5H5A1.5 1.5 0 0 0 3.5 5v9A1.5 1.5 0 0 0 5 15.5h1.5"/></symbol>
   <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13 2L5 13h5l-1 9 8-11h-5l1-9z"/></symbol>
   <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M18.4 5.6l-2.8 2.8M8.4 15.6l-2.8 2.8"/></symbol>
@@ -954,6 +1003,22 @@
         <input id="holidayEnd" type="date" aria-label="结束日期">
         <button id="holidayAdd" type="button">记录</button>
       </div>
+    </div>
+  </section>
+
+  <section class="panel weather-panel">
+    <div class="panel-head">
+      <svg class="icon"><use href="#i-cloud"/></svg>
+      <h3>今日天气</h3>
+      <span class="tag" id="weatherTag">未加载</span>
+      <div class="weather-citybar">
+        <input id="weatherCity" type="text" maxlength="20" placeholder="城市，如 北京" autocomplete="off">
+        <button id="weatherGo" type="button">查询</button>
+        <button id="weatherLoc" type="button" title="使用定位">定位</button>
+      </div>
+    </div>
+    <div class="weather-body" id="weatherBody">
+      <div class="weather-empty">输入城市或点「定位」，看看今天适合干啥、穿啥。</div>
     </div>
   </section>
 
@@ -1449,6 +1514,7 @@
     eyeRemindMin: 45,
     notify: false,
     meetingMode: false,
+    city: '',
     sound: true
   };
 
@@ -2603,6 +2669,134 @@
     renderHolidayList();
     updateHoliday(Date.now());
     toast('这个自定义假期删掉了。', 'info');
+  }
+
+  /* ---------------- 今日天气 ---------------- */
+  function weatherEsc(s){
+    return String(s).replace(/[&<>"']/g, function(c){
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  function weatherKind(code){
+    if (code === 0 || code === 1) return { k: 'sun', label: '晴' };
+    if (code === 2) return { k: 'cloud', label: '多云' };
+    if (code === 3) return { k: 'overcast', label: '阴' };
+    if (code === 45 || code === 48) return { k: 'fog', label: '雾' };
+    if (code >= 51 && code <= 57) return { k: 'rain', label: '毛毛雨' };
+    if (code >= 61 && code <= 67) return { k: 'rain', label: '雨' };
+    if (code >= 80 && code <= 82) return { k: 'rain', label: '阵雨' };
+    if (code >= 71 && code <= 77) return { k: 'snow', label: '雪' };
+    if (code >= 85 && code <= 86) return { k: 'snow', label: '阵雪' };
+    if (code >= 95 && code <= 99) return { k: 'thunder', label: '雷雨' };
+    return { k: 'overcast', label: '阴' };
+  }
+
+  function adviseDo(kind, t, c){
+    if (c.precipitation > 0) return '今天有降水，适合室内活动；要出门记得带伞，鞋穿防水的。';
+    if (kind === 'snow') return '下雪路面滑，少出门别走太快，室内拉伸、热饮更适合今天的牛马。';
+    if (kind === 'rain') return '下雨天适合室内；通勤早点出门，带伞，别淋着。';
+    if (kind === 'thunder') return '有雷雨，别在露天逗留，室内待着最安全。';
+    if (kind === 'fog') return '有雾能见度低，出行注意安全，运动选室内。';
+    if (kind === 'sun') return '天气不错，适合午休出去走两步、晒晒太阳，下午别一直坐着。';
+    if (kind === 'cloud' || kind === 'overcast') return '不晒不热，适合散步和户外活动，也适合在工位间隙站起来活动。';
+    return '今天天空比较平静，室内户外看心情，动一动总比不动强。';
+  }
+
+  function adviseWear(t, kind, c){
+    var wear;
+    if (t <= -10) wear = '羽绒服 + 厚毛衣 + 加绒裤 + 棉靴，围巾手套都安排上。';
+    else if (t <= 0) wear = '厚羽绒服 + 毛线衫 + 厚裤，别为了好看少穿。';
+    else if (t <= 8) wear = '羽绒服 / 厚外套 + 毛衣 + 长裤，怕冷就加条秋裤。';
+    else if (t <= 15) wear = '大衣 / 夹克 + 长袖 + 长裤，早晚温差大备件薄外套。';
+    else if (t <= 21) wear = '外套 / 卫衣 + 长袖或短袖，办公室备件薄衫抗空调。';
+    else if (t <= 27) wear = '短袖或薄长袖 + 薄裤，怕空调就带件薄外套。';
+    else if (t <= 32) wear = '短袖 + 短裤 / 裙装，防晒帽和墨镜安排上。';
+    else wear = '能少穿就少穿，透气短袖 + 防晒，别硬晒。';
+    if (c.precipitation > 0 || kind === 'rain' || kind === 'snow' || kind === 'thunder') wear += ' 记得带伞 / 雨具。';
+    if (c.wind_speed_10m > 8) wear += ' 风不小，加件防风外套。';
+    return wear;
+  }
+
+  function applyWeather(name, c){
+    var body = $('#weatherBody');
+    var tag = $('#weatherTag');
+    if (!body || !tag) return;
+    var wd = weatherKind(c.weather_code);
+    var t = Math.round(c.temperature_2m);
+    var feels = Math.round(c.apparent_temperature);
+    var rain = c.precipitation > 0;
+    tag.textContent = name + ' · ' + wd.label;
+    tag.className = 'tag weather-' + wd.k;
+    body.innerHTML =
+      '<div class="weather-grid">' +
+        '<div class="weather-main">' +
+          '<span class="weather-badge ' + wd.k + '">' + wd.label + '</span>' +
+          '<div>' +
+            '<div class="weather-temp">' + t + '°<span>体感 ' + feels + '°</span></div>' +
+            '<div class="weather-meta">' + weatherEsc(name) + ' · 湿度 ' + Math.round(c.relative_humidity_2m) + '% · 风速 ' + Math.round(c.wind_speed_10m) + ' km/h</div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="weather-advice">' +
+          '<div class="advice-card do"><h5>适合干什么</h5><p>' + adviseDo(wd.k, t, c) + '</p></div>' +
+          '<div class="advice-card wear"><h5>适合穿什么</h5><p>' + adviseWear(t, wd.k, c) + '</p></div>' +
+        '</div>' +
+      '</div>';
+  }
+
+  function onWeatherFail(){
+    var tag = $('#weatherTag');
+    var body = $('#weatherBody');
+    if (tag) { tag.textContent = '加载失败'; tag.className = 'tag danger'; }
+    if (body) body.innerHTML = '<div class="weather-empty">天气加载失败，可能是网络问题，再点一次「查询」试试。</div>';
+  }
+
+  function loadWeatherFromCoords(name, lat, lon){
+    var url = 'https://api.open-meteo.com/v1/forecast?latitude=' + lat + '&longitude=' + lon +
+      '&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m' +
+      '&timezone=auto&forecast_days=1';
+    fetch(url).then(function(r){ return r.json(); }).then(function(d){
+      if (!d || !d.current) { onWeatherFail(); return; }
+      settings.city = name;
+      var input = $('#weatherCity');
+      if (input) input.value = name;
+      save();
+      applyWeather(name, d.current);
+    }).catch(onWeatherFail);
+  }
+
+  function fetchWeather(name){
+    name = (name || '').trim();
+    if (!name) { toast('先填个城市名。', 'warn'); return; }
+    $('#weatherTag').textContent = '加载中';
+    $('#weatherTag').className = 'tag';
+    var geo = 'https://geocoding-api.open-meteo.com/v1/search?name=' + encodeURIComponent(name) + '&count=1&language=zh&format=json';
+    fetch(geo).then(function(r){ return r.json(); }).then(function(data){
+      var res = data && data.results && data.results[0];
+      if (!res) { toast('没找到这个城市，换个写法试试。', 'warn'); $('#weatherTag').textContent = '未找到'; return; }
+      loadWeatherFromCoords(res.name, res.latitude, res.longitude);
+    }).catch(onWeatherFail);
+  }
+
+  function locateWeather(){
+    if (!navigator.geolocation) { toast('浏览器不支持定位，手动输入城市吧。', 'warn'); return; }
+    $('#weatherTag').textContent = '定位中';
+    $('#weatherTag').className = 'tag';
+    navigator.geolocation.getCurrentPosition(function(pos){
+      var lat = pos.coords.latitude;
+      var lon = pos.coords.longitude;
+      fetch('https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=' + lat + '&longitude=' + lon + '&localityLanguage=zh')
+        .then(function(r){ return r.json(); })
+        .then(function(g){
+          var nm = g.city || g.locality || g.principalSubdivision || '当前位置';
+          loadWeatherFromCoords(nm, lat, lon);
+        })
+        .catch(function(){ loadWeatherFromCoords('当前位置', lat, lon); });
+    }, function(){
+      toast('定位失败，手动输入城市吧。', 'warn');
+      $('#weatherTag').textContent = '定位失败';
+      $('#weatherTag').className = 'tag danger';
+    }, { timeout: 12000 });
   }
 
   /* ---------------- actions ---------------- */
@@ -3780,6 +3974,11 @@
       b.addEventListener('click', function(){ selectExerciseType(b.getAttribute('data-ex')); });
     });
     $('#holidayAdd').addEventListener('click', addCustomHoliday);
+    $('#weatherGo').addEventListener('click', function(){ fetchWeather($('#weatherCity').value); });
+    $('#weatherLoc').addEventListener('click', locateWeather);
+    $('#weatherCity').addEventListener('keydown', function(e){
+      if (e.key === 'Enter' && !e.isComposing) fetchWeather($('#weatherCity').value);
+    });
 
     $$('#rangeTabs button').forEach(function(b){
       b.addEventListener('click', function(){
@@ -3847,6 +4046,11 @@
     setInterval(tick, 1000);
     setInterval(maybeRemind, 5000);
     setInterval(rotateQuote, 16000);
+
+    if (settings.city) {
+      $('#weatherCity').value = settings.city;
+      fetchWeather(settings.city);
+    }
   }
 
   init();
