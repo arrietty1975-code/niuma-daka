@@ -329,6 +329,7 @@
   .log-dot.water{background:#2f6bff}
   .log-dot.stand{background:#ff5a1f}
   .log-dot.sit{background:#e2382a}
+  .log-dot.exercise{background:#2f6bff}
   .log-dot.toilet{background:#8b5cf6}
   .log-dot.mood{background:#ec4899}
   .log-dot.eye{background:#0fa968}
@@ -474,6 +475,56 @@
     .meal-pick .meal-name{font-size:23px}
     .meal-photo-row .meal-spacer{display:none}
     #mealSave{width:100%}
+  }
+
+  /* exercise */
+  .exercise-panel{margin-top:15px;min-height:0}
+  .exercise-layout{display:grid;grid-template-columns:1.05fr 1fr;gap:16px;margin-top:4px}
+  .exercise-form{
+    background:linear-gradient(180deg,#f7fbff,#fffdf9);border:1px solid #dfe9f5;border-radius:18px;
+    padding:16px;display:flex;flex-direction:column;justify-content:center;
+  }
+  .exercise-catline{margin:0;font-size:11px;color:var(--muted)}
+  .exercise-types{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
+  .exercise-types button{
+    border:1px solid var(--line);background:#fff;color:#6b645c;font-size:11px;padding:6px 10px;
+    border-radius:999px;cursor:pointer;transition:.18s;
+  }
+  .exercise-types button:hover{background:#f0f6ff;border-color:#bcd2f8;color:#1d4ed8}
+  .exercise-types button.active{background:var(--blue-soft);border-color:#b9cfff;color:#1d4ed8;font-weight:700}
+  .exercise-controls{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:4px}
+  .exercise-duration{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--muted)}
+  .exercise-duration input{
+    width:64px;border:1.5px solid var(--line);border-radius:10px;padding:8px 6px;
+    font:inherit;font-size:13px;text-align:center;outline:none;background:#fff;color:var(--ink);
+  }
+  .exercise-duration input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(47,107,255,.12)}
+  .exercise-kcal{
+    font-size:11px;color:#1d4ed8;background:var(--blue-soft);border-radius:999px;padding:5px 10px;font-weight:600;
+  }
+  .exercise-actions{display:flex;gap:8px;margin-top:11px;flex-wrap:wrap}
+  .exercise-today{min-height:120px;display:flex;flex-direction:column;justify-content:center}
+  .exercise-summary{
+    font-size:11.5px;color:#6b635a;background:#f8f4ed;border:1px solid var(--line);
+    border-radius:12px;padding:10px 12px;margin-bottom:9px;line-height:1.6;
+  }
+  .exercise-item{
+    display:flex;align-items:center;gap:10px;padding:9px 10px;border:1px solid var(--line);
+    border-radius:12px;background:#fffdf9;margin-bottom:7px;
+  }
+  .exercise-item .ex-icon{
+    width:34px;height:34px;border-radius:10px;background:var(--blue-soft);color:var(--blue);
+    display:grid;place-items:center;flex:none;
+  }
+  .exercise-item .ex-icon .icon{width:17px;height:17px}
+  .exercise-item-body{flex:1;min-width:0}
+  .exercise-item-body b{font-size:12px;display:block;line-height:1.3}
+  .exercise-item-body span{font-size:10px;color:var(--muted);display:block;margin-top:1px}
+  .exercise-item .ex-time{font-size:10px;color:var(--muted);font-variant-numeric:tabular-nums;flex:none}
+  .exercise-item .meal-del{border:none;background:transparent;color:#c1b8ac;cursor:pointer;padding:2px 4px;flex:none}
+  .exercise-item .meal-del:hover{color:var(--red)}
+  @media (max-width:900px){
+    .exercise-layout{grid-template-columns:1fr}
   }
 
   /* history */
@@ -760,6 +811,7 @@
   <symbol id="i-bubble" viewBox="0 0 24 24"><path d="M21 11.5a8.5 8.5 0 0 1-12.6 7.4L3 20l.9-4.4A8.5 8.5 0 1 1 21 11.5z"/><path d="M8 10.5h8M8 13.5h5"/></symbol>
   <symbol id="i-food" viewBox="0 0 24 24"><path d="M4 11h6a4 4 0 0 1 0 8H4v-8z"/><path d="M12 11a5 5 0 0 1 0 8M16 3c1 3 1 5 0 7M19 3c1 3 1 5 0 7"/><path d="M4 21v-2h6v2z"/></symbol>
   <symbol id="i-camera" viewBox="0 0 24 24"><path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.5" r="3.5"/></symbol>
+  <symbol id="i-dumbbell" viewBox="0 0 24 24"><path d="M7 8v8M4.5 9.5v5M17 8v8M19.5 9.5v5"/><path d="M7 12h10M2.5 12h2M19.5 12h2"/></symbol>
   <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M15.5 6.5V5A1.5 1.5 0 0 0 14 3.5H5A1.5 1.5 0 0 0 3.5 5v9A1.5 1.5 0 0 0 5 15.5h1.5"/></symbol>
   <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13 2L5 13h5l-1 9 8-11h-5l1-9z"/></symbol>
   <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M18.4 5.6l-2.8 2.8M8.4 15.6l-2.8 2.8"/></symbol>
@@ -1112,6 +1164,45 @@
     <div class="meal-today" id="mealToday"></div>
   </section>
 
+  <section class="panel exercise-panel">
+    <div class="panel-head">
+      <svg class="icon"><use href="#i-dumbbell"/></svg>
+      <h3>运动打卡</h3>
+      <span class="tag" id="exerciseTag">还没动</span>
+    </div>
+    <div class="exercise-layout">
+      <div class="exercise-form">
+        <p class="exercise-catline">今天动了吗？动没动、动了啥，都值得记一笔。</p>
+        <div class="exercise-types" id="exerciseTypes">
+          <button type="button" class="active" data-ex="快走">快走</button>
+          <button type="button" data-ex="跑步">跑步</button>
+          <button type="button" data-ex="骑行">骑行</button>
+          <button type="button" data-ex="跳绳">跳绳</button>
+          <button type="button" data-ex="游泳">游泳</button>
+          <button type="button" data-ex="力量">力量</button>
+          <button type="button" data-ex="瑜伽">瑜伽</button>
+          <button type="button" data-ex="拉伸">拉伸</button>
+          <button type="button" data-ex="球类">球类</button>
+          <button type="button" data-ex="爬楼">爬楼</button>
+          <button type="button" data-ex="其他">其他</button>
+        </div>
+        <div class="exercise-controls">
+          <label class="exercise-duration">
+            <span>时长</span>
+            <input id="exerciseMinutes" type="number" min="1" max="300" value="20" inputmode="numeric">
+            <span>分钟</span>
+          </label>
+          <span class="exercise-kcal" id="exerciseKcalPreview">约 90 kcal</span>
+        </div>
+        <div class="exercise-actions">
+          <button class="btn primary grow" id="exerciseSave" type="button">记下这次运动</button>
+          <button class="btn soft" id="exerciseRest" type="button">今天休息</button>
+        </div>
+      </div>
+      <div class="exercise-today" id="exerciseToday"></div>
+    </div>
+  </section>
+
   <section class="panels">
     <div class="panel">
       <div class="panel-head">
@@ -1126,7 +1217,7 @@
       <div class="panel-head">
         <svg class="icon"><use href="#i-medal"/></svg>
         <h3>牛马成就</h3>
-        <span class="tag" id="badgeCount">0/10</span>
+        <span class="tag" id="badgeCount">0/11</span>
       </div>
       <div class="badges" id="badgeList"></div>
     </div>
@@ -1371,6 +1462,8 @@
       eyeSnoozeUntil: 0,
       ventCount: 0,
       meals: [],
+      exercises: [],
+      restDay: false,
       lastScore: 0,
       logs: []
     };
@@ -1471,6 +1564,8 @@
     settings.notify = !!settings.notify;
     settings.sound = !!settings.sound;
     if (!state) state = newDay();
+    state.exercises = Array.isArray(state.exercises) ? state.exercises : [];
+    state.restDay = !!state.restDay;
 
     var nowTs = Date.now();
     if (state.lastWaterAt && nowTs - state.lastWaterAt >= settings.waterRemindMin * 60000) {
@@ -2156,6 +2251,159 @@
     });
   }
 
+  /* ---------------- 运动打卡 ---------------- */
+  var exerciseType = '快走';
+  var EXERCISE_TYPES = [
+    { name: '快走', rate: 4.5 },
+    { name: '跑步', rate: 9 },
+    { name: '骑行', rate: 7 },
+    { name: '跳绳', rate: 10 },
+    { name: '游泳', rate: 8 },
+    { name: '力量', rate: 6 },
+    { name: '瑜伽', rate: 3 },
+    { name: '拉伸', rate: 2 },
+    { name: '球类', rate: 7 },
+    { name: '爬楼', rate: 8 },
+    { name: '其他', rate: 5 }
+  ];
+
+  function exerciseRate(name){
+    for (var i = 0; i < EXERCISE_TYPES.length; i++) {
+      if (EXERCISE_TYPES[i].name === name) return EXERCISE_TYPES[i].rate;
+    }
+    return 5;
+  }
+
+  function exerciseKcalOf(name, minutes){
+    return Math.round(exerciseRate(name) * Math.max(0, Number(minutes) || 0));
+  }
+
+  function updateExercisePreview(){
+    var mins = parseInt($('#exerciseMinutes').value, 10);
+    if (!(mins > 0)) mins = 0;
+    $('#exerciseKcalPreview').textContent = '约 ' + exerciseKcalOf(exerciseType, mins) + ' kcal';
+  }
+
+  function selectExerciseType(name){
+    exerciseType = name;
+    $$('#exerciseTypes button').forEach(function(b){
+      b.classList.toggle('active', b.getAttribute('data-ex') === name);
+    });
+    updateExercisePreview();
+  }
+
+  function saveExercise(){
+    var mins = parseInt($('#exerciseMinutes').value, 10);
+    if (!(mins > 0)) {
+      toast('先填个运动时长吧。', 'warn');
+      return;
+    }
+    mins = Math.min(300, mins);
+    var rec = {
+      ts: Date.now(),
+      type: exerciseType,
+      minutes: mins,
+      kcal: exerciseKcalOf(exerciseType, mins)
+    };
+    state.exercises = state.exercises || [];
+    state.exercises.push(rec);
+    if (state.exercises.length > 20) state.exercises = state.exercises.slice(-20);
+    state.restDay = false;
+    addLog('exercise', '运动打卡：' + rec.type + ' ' + mins + ' 分钟');
+    save();
+    renderExercise();
+    toast('记下了，动了就比没动强。', 'success');
+  }
+
+  function removeExercise(index){
+    if (!state.exercises || index < 0 || index >= state.exercises.length) return;
+    state.exercises.splice(index, 1);
+    save();
+    renderExercise();
+    toast('这次运动记录删掉了。', 'info');
+  }
+
+  function toggleRestDay(){
+    if ((state.exercises || []).length) {
+      toast('今天已经动过了，休息留给明天。', 'info');
+      return;
+    }
+    state.restDay = !state.restDay;
+    save();
+    renderExercise();
+    toast(state.restDay ? '今天休息，休息也是训练的一部分。' : '取消休息，随时可以动起来。', 'info');
+  }
+
+  function renderExercise(){
+    var list = state.exercises || [];
+    var resting = !!state.restDay && list.length === 0;
+    var tag = $('#exerciseTag');
+    if (tag) {
+      if (list.length) {
+        tag.textContent = '已运动 ' + list.length + ' 次';
+        tag.className = 'tag green';
+      } else if (resting) {
+        tag.textContent = '今天休息';
+        tag.className = 'tag blue';
+      } else {
+        tag.textContent = '还没动';
+        tag.className = 'tag warn';
+      }
+    }
+    var restBtn = $('#exerciseRest');
+    if (restBtn) {
+      restBtn.textContent = resting ? '取消休息' : '今天休息';
+      restBtn.classList.toggle('primary', resting);
+      restBtn.classList.toggle('soft', !resting);
+    }
+    var wrap = $('#exerciseToday');
+    if (!wrap) return;
+    wrap.innerHTML = '';
+    if (!list.length) {
+      var empty = document.createElement('div');
+      empty.className = 'empty';
+      empty.textContent = resting ? '今天选择休息，休息也是训练的一部分。' : '今天还没运动，起来走 10 分钟也算开张。';
+      wrap.appendChild(empty);
+      return;
+    }
+    var totalMin = list.reduce(function(acc, r){ return acc + (Number(r.minutes) || 0); }, 0);
+    var totalKcal = list.reduce(function(acc, r){ return acc + (Number(r.kcal) || 0); }, 0);
+    var summary = document.createElement('div');
+    summary.className = 'exercise-summary';
+    summary.textContent = '今日运动 ' + list.length + ' 次 · ' + totalMin + ' 分钟 · 约 ' + totalKcal + ' kcal';
+    wrap.appendChild(summary);
+    list.slice().reverse().forEach(function(rec, revIdx){
+      var realIndex = list.length - 1 - revIdx;
+      var row = document.createElement('div');
+      row.className = 'exercise-item';
+      var icon = document.createElement('span');
+      icon.className = 'ex-icon';
+      icon.innerHTML = '<svg class="icon"><use href="#i-dumbbell"/></svg>';
+      var body = document.createElement('div');
+      body.className = 'exercise-item-body';
+      var b = document.createElement('b');
+      b.textContent = rec.type;
+      body.appendChild(b);
+      var sub = document.createElement('span');
+      sub.textContent = (rec.minutes || 0) + ' 分钟 · 约 ' + (rec.kcal || 0) + ' kcal';
+      body.appendChild(sub);
+      var time = document.createElement('span');
+      time.className = 'ex-time';
+      time.textContent = fmtClock(rec.ts);
+      var del = document.createElement('button');
+      del.type = 'button';
+      del.className = 'meal-del';
+      del.setAttribute('aria-label', '删除这次运动');
+      del.innerHTML = '<svg class="icon"><use href="#i-minus"/></svg>';
+      del.addEventListener('click', function(){ removeExercise(realIndex); });
+      row.appendChild(icon);
+      row.appendChild(body);
+      row.appendChild(time);
+      row.appendChild(del);
+      wrap.appendChild(row);
+    });
+  }
+
   /* ---------------- actions ---------------- */
   function drink(delta){
     var before = state.water;
@@ -2694,6 +2942,9 @@
         tips.push({ icon: 'i-clock', text: '距离下班不到 30 分钟，收尾工作，准点跑路。' });
       }
     }
+    if (!(state.exercises || []).length && !state.restDay && state.clockOut) {
+      tips.push({ icon: 'i-dumbbell', text: '今天还没运动，下班后快走 10 分钟也算开张。' });
+    }
     tips = tips.slice(0, 4);
     var list = $('#tipsList');
     list.innerHTML = '';
@@ -2968,7 +3219,8 @@
       { name: '摸鱼有道', desc: '摸鱼满 15 分钟', icon: 'i-fish', on: fishMs >= 15 * 60000 },
       { name: '情绪稳定', desc: '心情打卡 4 分以上', icon: 'i-heart', on: state.mood >= 4 },
       { name: '续命特调', desc: '喝下 3 杯咖啡', icon: 'i-coffee', on: state.coffee >= 3 },
-      { name: '准点跑路', desc: '下班点前打卡下班', icon: 'i-flag', on: !!state.clockOut && endTs > 0 && state.clockOut < endTs }
+      { name: '准点跑路', desc: '下班点前打卡下班', icon: 'i-flag', on: !!state.clockOut && endTs > 0 && state.clockOut < endTs },
+      { name: '动起来了', desc: '完成 1 次运动', icon: 'i-dumbbell', on: (state.exercises || []).length >= 1 }
     ];
     var onCount = list.filter(function(b){ return b.on; }).length;
     $('#badgeCount').textContent = onCount + '/' + list.length;
@@ -3027,6 +3279,7 @@
     renderPunch();
     renderVent();
     renderMeals();
+    renderExercise();
     updateCareHints();
   }
 
@@ -3229,6 +3482,7 @@
       '带薪摸鱼：' + Math.floor(fishMsOf(state) / 60000) + ' 分钟 ｜ 护眼：' + state.eyeRest + '/3 次',
       '吐槽搭子：' + (state.ventCount || 0) + ' 次',
       '吃饭记录：' + ((state.meals || []).length) + ' 顿 · 约 ' + (state.meals || []).reduce(function(a, r){ return a + (Number(r.kcal) || 0); }, 0) + ' kcal',
+      '运动：' + ((state.exercises || []).length ? (state.exercises || []).length + ' 次 · ' + (state.exercises || []).reduce(function(a, r){ return a + (Number(r.minutes) || 0); }, 0) + ' 分钟' : (state.restDay ? '今天休息' : '未记录')),
       '心情：' + (state.mood ? MOODS[state.mood] + '（' + state.mood + '/5）' : '未打卡'),
       '牛马健康分：' + scoreResult.total + ' 分 · ' + rank.title,
       '今日寄语：' + QUOTES[quoteIdx]
@@ -3315,6 +3569,12 @@
         $$('#mealCatChips button').forEach(function(x){ x.classList.toggle('active', x === b); });
         rollMeal();
       });
+    });
+    $('#exerciseSave').addEventListener('click', saveExercise);
+    $('#exerciseRest').addEventListener('click', toggleRestDay);
+    $('#exerciseMinutes').addEventListener('input', updateExercisePreview);
+    $$('#exerciseTypes button').forEach(function(b){
+      b.addEventListener('click', function(){ selectExerciseType(b.getAttribute('data-ex')); });
     });
 
     $$('#rangeTabs button').forEach(function(b){
