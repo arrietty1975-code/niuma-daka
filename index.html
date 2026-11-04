@@ -782,6 +782,13 @@
     font-size:10.5px;line-height:1.55;color:#8d8477;font-style:italic;
   }
   .weather-quip .icon{width:12px;height:12px;color:#8aa56d;margin-top:1px}
+  .weather-tomorrow{
+    display:flex;align-items:flex-start;gap:7px;margin-top:10px;padding:9px 12px;
+    border-radius:12px;font-size:11px;font-weight:600;line-height:1.5;
+  }
+  .weather-tomorrow .icon{width:15px;height:15px;margin-top:1px;flex:none}
+  .weather-tomorrow.cool{background:#eef5ff;border:1px solid #d8e6fb;color:#245bb5}
+  .weather-tomorrow.warm{background:#fff6eb;border:1px solid #f8e4c8;color:#9a5a08}
   .weather-tips{
     display:grid;grid-template-columns:1fr 1fr;gap:0;border-top:1px solid rgba(28,27,25,.07);
     padding-top:12px;margin-top:auto;
@@ -3458,6 +3465,29 @@
     return 'i-cloud';
   }
 
+  function tomorrowClothingTip(daily){
+    if (!daily || !Array.isArray(daily.temperature_2m_max) || !Array.isArray(daily.temperature_2m_min)) return null;
+    var max = daily.temperature_2m_max;
+    var min = daily.temperature_2m_min;
+    if (max.length < 2 || min.length < 2) return null;
+    var todayMax = Number(max[0]);
+    var todayMin = Number(min[0]);
+    var tomorrowMax = Number(max[1]);
+    var tomorrowMin = Number(min[1]);
+    if (![todayMax, todayMin, tomorrowMax, tomorrowMin].every(function(v){ return isFinite(v); })) return null;
+    var maxDiff = Math.round(tomorrowMax - todayMax);
+    var minDiff = Math.round(tomorrowMin - todayMin);
+    var useMax = Math.abs(maxDiff) >= Math.abs(minDiff);
+    var diff = useMax ? maxDiff : minDiff;
+    if (Math.abs(diff) < 5) return null;
+    var basis = useMax ? '白天' : '夜间';
+    var range = Math.round(tomorrowMin) + '°~' + Math.round(tomorrowMax) + '°';
+    if (diff < 0) {
+      return { type: 'cool', text: '明天 ' + range + ' · ' + basis + '比今天低 ' + Math.abs(diff) + '°，记得加衣' };
+    }
+    return { type: 'warm', text: '明天 ' + range + ' · ' + basis + '比今天高 ' + diff + '°，可以减衣' };
+  }
+
   function weatherPrairieQuip(kind, t){
     if (kind === 'sun') return '大晴天正适合撒野，可惜只能在工位前走两步，凑合当大草原。';
     if (kind === 'rain') return '下雨了，草原变水塘，牛马别去踩泥，屋里喝水最香。';
@@ -3499,11 +3529,12 @@
     return wear;
   }
 
-  function applyWeather(name, c){
+  function applyWeather(name, c, daily){
     var body = $('#weatherBody');
     var tag = $('#weatherTag');
     if (!body || !tag) return;
     var wd = weatherKind(c.weather_code);
+    var tomorrowTip = tomorrowClothingTip(daily);
     var t = Math.round(c.temperature_2m);
     var feels = Math.round(c.apparent_temperature);
     var humidity = Math.round(c.relative_humidity_2m);
@@ -3526,6 +3557,7 @@
           '<div><span>降水</span><b>' + precipText + ' <em>mm</em></b></div>' +
         '</div>' +
       '</div>' +
+      (tomorrowTip ? '<div class="weather-tomorrow ' + tomorrowTip.type + '"><svg class="icon"><use href="#' + (tomorrowTip.type === 'cool' ? 'i-shirt' : 'i-sun') + '"/></svg><span>' + tomorrowTip.text + '</span></div>' : '') +
       '<div class="weather-quip"><svg class="icon"><use href="#i-grass"/></svg><span id="weatherNote"></span></div>' +
       '<div class="weather-tips">' +
         '<div class="weather-tip do"><span class="weather-tip-icon"><svg class="icon"><use href="#i-walk"/></svg></span><div><h5>适合干什么</h5><p>' + adviseDo(wd.k, t, c) + '</p></div></div>' +
@@ -3545,14 +3577,14 @@
   function loadWeatherFromCoords(name, lat, lon){
     var url = 'https://api.open-meteo.com/v1/forecast?latitude=' + lat + '&longitude=' + lon +
       '&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m' +
-      '&timezone=auto&forecast_days=1';
+      '&daily=temperature_2m_max,temperature_2m_min&timezone=auto&forecast_days=2';
     fetch(url).then(function(r){ return r.json(); }).then(function(d){
       if (!d || !d.current) { onWeatherFail(); return; }
       settings.city = name;
       var input = $('#weatherCity');
       if (input) input.value = name;
       save();
-      applyWeather(name, d.current);
+      applyWeather(name, d.current, d.daily);
     }).catch(onWeatherFail);
   }
 
