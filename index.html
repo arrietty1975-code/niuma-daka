@@ -661,6 +661,8 @@
   .cal-cell .cal-day{font-variant-numeric:tabular-nums;font-weight:600;line-height:1}
   .cal-cell.is-holiday{background:linear-gradient(180deg,#fff3ea,#ffe7d8);border-color:transparent;color:var(--orange-deep);font-weight:700}
   .cal-cell.is-today{box-shadow:inset 0 0 0 1.5px var(--orange),0 2px 6px rgba(255,90,31,.16);font-weight:800;background:#fffaf5}
+  .cal-cell.is-picked{background:linear-gradient(180deg,#ff7a3c,#ff5a1f);border-color:transparent;color:#fff;font-weight:800;box-shadow:0 2px 8px rgba(255,90,31,.22)}
+  .cal-cell.is-picked.is-today{box-shadow:inset 0 0 0 1.5px #fff,0 2px 8px rgba(255,90,31,.22)}
   .cal-cell.is-past{opacity:.38}
   .cal-cell.is-past.is-holiday{opacity:.55}
   .cal-cell:not(.is-blank):hover{background:#fff7f0;transform:translateY(-1px)}
@@ -674,6 +676,7 @@
   .cal-legend i{display:inline-block;width:6px;height:6px;border-radius:2px}
   .cal-legend .lg-holiday{background:var(--orange-soft);border:1px solid #ffc4a6}
   .cal-legend .lg-today{background:#fff;border:1px solid var(--orange)}
+  .cal-legend .lg-picked{background:linear-gradient(180deg,#ff7a3c,#ff5a1f);border:1px solid #ff5a1f}
   .cal-mode{font-size:8.5px;font-weight:800;letter-spacing:-.02em;color:#6f665b}
   .cal-mode:hover{color:var(--orange-deep)}
   .cal-grid.year{grid-template-columns:repeat(4,1fr);gap:5px}
@@ -683,6 +686,7 @@
   }
   .cal-year-month:hover{border-color:#ffc4a6;background:#fff9f4}
   .cal-year-month.is-current{border-color:rgba(255,90,31,.38);box-shadow:0 0 0 1px rgba(255,90,31,.1)}
+  .cal-year-month.is-picked{border-color:var(--orange);background:#fff7f0;box-shadow:0 0 0 1px rgba(255,90,31,.14)}
   .cal-year-label{display:block;margin-bottom:2px;text-align:center;font-size:7.5px;font-weight:800;line-height:1.25;color:#7c7368}
   .cal-year-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px}
   .cal-year-day{display:block;height:4px;border-radius:1px;background:rgba(28,27,25,.075)}
@@ -1159,6 +1163,7 @@
         <div class="cal-legend">
           <span><i class="lg-holiday"></i>放假</span>
           <span><i class="lg-today"></i>今天</span>
+          <span><i class="lg-picked"></i>已选</span>
         </div>
       </div>
       <div class="holiday-list" id="holidayList"></div>
@@ -2909,6 +2914,10 @@
       if (info) cls += ' is-holiday';
       if (key === todayKey) cls += ' is-today';
       if (d.getTime() < todayStart) cls += ' is-past';
+      if (selectedHolidayKey) {
+        var sel = selectedHolidayKey.split('|');
+        if (key >= sel[0] && key <= sel[1]) cls += ' is-picked';
+      }
       var inner = '<span class="cal-day">' + day + '</span>';
       if (info) {
         var startKey = dateKey(new Date(info.startTs));
@@ -2937,6 +2946,7 @@
     if (!grid) return;
     var today = new Date(now);
     var todayKey = dateKey(today);
+    var pickedMonth = selectedHolidayKey ? selectedHolidayKey.slice(0, 7) : '';
     var html = '';
     for (var i = 0; i < 12; i++) {
       var offset = calWindowMonth + i;
@@ -2946,7 +2956,8 @@
       var startWd = first.getDay();
       var days = new Date(year, month + 1, 0).getDate();
       var current = year === today.getFullYear() && month === today.getMonth();
-      html += '<div class="cal-year-month' + (current ? ' is-current' : '') + '" data-year="' + year + '" data-month="' + month + '" title="' + year + '年' + (month + 1) + '月 · 点击查看">';
+      var picked = pickedMonth === (year + '-' + pad(month + 1));
+      html += '<div class="cal-year-month' + (current ? ' is-current' : '') + (picked ? ' is-picked' : '') + '" data-year="' + year + '" data-month="' + month + '" title="' + year + '年' + (month + 1) + '月 · 点击查看">';
       html += '<span class="cal-year-label">' + (month + 1) + '月</span>';
       html += '<div class="cal-year-grid">';
       for (var p = 0; p < startWd; p++) html += '<i class="cal-year-day is-blank"></i>';
@@ -3299,10 +3310,24 @@
     });
   }
 
+  function jumpCalendarToHoliday(key){
+    var start = (key || '').split('|')[0];
+    if (!start) return;
+    var date = new Date(start + 'T00:00:00');
+    if (isNaN(date.getTime())) return;
+    calYear = date.getFullYear();
+    calMonth = date.getMonth();
+    calWindowYear = calYear;
+    calWindowMonth = calMonth;
+    calMode = 'month';
+    renderCalendar(Date.now());
+  }
+
   function selectHoliday(key){
     selectedHolidayKey = key;
     updateHoliday(Date.now());
     renderHolidayList();
+    jumpCalendarToHoliday(key);
   }
 
   function addCustomHoliday(){
