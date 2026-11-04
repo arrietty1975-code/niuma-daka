@@ -931,6 +931,95 @@
   .confetti-piece{position:fixed;top:-24px;z-index:500;pointer-events:none;animation:confettiFall linear forwards}
   @keyframes confettiFall{to{transform:translateY(108vh) rotate(780deg);opacity:.85}}
 
+  /* ---------- clock-out celebration ---------- */
+  .offwork-celebrate{
+    position:fixed;inset:0;z-index:480;display:grid;place-items:center;padding:24px;
+    background:
+      radial-gradient(circle at 50% 16%,rgba(255,172,92,.4),transparent 38%),
+      radial-gradient(circle at 12% 84%,rgba(47,107,255,.2),transparent 42%),
+      linear-gradient(155deg,rgba(31,20,12,.92),rgba(65,32,13,.96));
+    backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+    overflow:hidden;animation:offworkFade .3s ease;
+  }
+  .offwork-celebrate[hidden]{display:none}
+  .offwork-celebrate::before{
+    content:"";position:absolute;width:min(760px,130vw);aspect-ratio:1;border-radius:50%;
+    background:radial-gradient(circle,rgba(255,122,60,.34),rgba(255,183,3,.1) 38%,transparent 66%);
+    filter:blur(4px);animation:offworkGlow 5s ease-in-out infinite;pointer-events:none;
+  }
+  .offwork-celebrate::after{
+    content:"";position:absolute;inset:-30%;pointer-events:none;
+    background:conic-gradient(from 0deg,transparent 0 12deg,rgba(255,196,120,.07) 12deg 13deg,transparent 13deg 28deg);
+    animation:offworkSpin 42s linear infinite;
+  }
+  @keyframes offworkFade{from{opacity:0}to{opacity:1}}
+  @keyframes offworkGlow{0%,100%{transform:scale(.92);opacity:.7}50%{transform:scale(1.06);opacity:1}}
+  @keyframes offworkSpin{to{transform:rotate(360deg)}}
+  .offwork-card{
+    position:relative;z-index:2;width:min(520px,100%);max-height:calc(100dvh - 48px);overflow-y:auto;
+    padding:30px 30px 24px;text-align:center;
+    background:linear-gradient(170deg,#fffaf2 0%,#fff4e3 58%,#ffe9cf 100%);
+    border:1px solid rgba(255,255,255,.75);border-radius:30px;
+    box-shadow:0 44px 110px -26px rgba(0,0,0,.65),inset 0 0 0 1px rgba(255,255,255,.28),inset 0 1px 0 rgba(255,255,255,.9);
+    animation:offworkPop .55s cubic-bezier(.2,1.45,.4,1);
+  }
+  .offwork-card::before{
+    content:"";position:absolute;inset:0;pointer-events:none;
+    background:
+      radial-gradient(circle at 80% -10%,rgba(255,138,61,.2),transparent 42%),
+      radial-gradient(circle at 8% 100%,rgba(47,107,255,.08),transparent 38%);
+  }
+  .offwork-card > *{position:relative;z-index:1}
+  .offwork-badge{
+    display:inline-flex;align-items:center;gap:7px;padding:6px 12px;border-radius:999px;
+    font-size:10px;font-weight:800;letter-spacing:.1em;color:#0b7a4c;
+    background:#e8fbf1;border:1px solid #b9efd3;
+  }
+  .offwork-badge span{width:6px;height:6px;border-radius:50%;background:#0fa968;box-shadow:0 0 0 4px rgba(15,169,104,.14);animation:pulse 1.8s infinite}
+  .offwork-medal{
+    width:82px;height:82px;margin:16px auto 4px;border-radius:50%;display:grid;place-items:center;
+    background:linear-gradient(145deg,#ffb347,#ff6a33 55%,#ff3d0a);
+    box-shadow:0 16px 34px -10px rgba(255,90,31,.55),inset 0 1px 0 rgba(255,255,255,.45);
+    animation:offworkBob 3s ease-in-out infinite;
+  }
+  .offwork-medal .icon{width:36px;height:36px;color:#fff;stroke-width:1.8}
+  .offwork-card h2{
+    margin:8px 0 4px;font-size:clamp(38px,6.4vw,56px);line-height:1.02;letter-spacing:-.055em;font-weight:900;
+    background:linear-gradient(180deg,#2a2119,#6b3b12);-webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .offwork-sub{margin:0;font-size:12px;line-height:1.6;color:#8b6b50}
+  .offwork-time{
+    font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:clamp(40px,6vw,58px);font-weight:700;
+    letter-spacing:-.04em;line-height:1;color:#b45309;margin:14px 0 10px;font-variant-numeric:tabular-nums;
+  }
+  .offwork-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;max-width:340px;margin:0 auto 14px}
+  .offwork-stats div{padding:10px 12px;border-radius:14px;background:rgba(255,255,255,.62);border:1px solid rgba(214,178,140,.35);text-align:left}
+  .offwork-stats span{display:block;font-size:9px;color:#a98b70;letter-spacing:.05em}
+  .offwork-stats b{display:block;font-size:18px;font-weight:800;color:#3f2a1a;margin-top:2px;font-variant-numeric:tabular-nums}
+  .offwork-stats b.hot{color:#d9480f}
+  .offwork-quote{
+    margin:0 0 18px;padding:9px 12px;border-radius:12px;border:1px dashed #f3cba5;
+    background:#fff3e4;font-size:12px;line-height:1.7;color:#6b4a31;
+  }
+  .offwork-actions{display:flex;gap:9px;justify-content:center;flex-wrap:wrap}
+  .offwork-actions .btn{padding:11px 20px;border-radius:13px}
+  .offwork-actions .btn.ghost{background:#fffaf3;border-color:#ead7c1;color:#7a5a42}
+  .offwork-actions .btn.ghost:hover{background:#fff;color:#b45309}
+  .offwork-foot{margin:14px 0 0;font-size:9.5px;color:#b09274;letter-spacing:.02em}
+  @keyframes offworkPop{from{opacity:0;transform:scale(.9) translateY(24px)}to{opacity:1;transform:none}}
+  @keyframes offworkBob{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-5px) rotate(3deg)}}
+  body.offwork-open{overflow:hidden}
+  @media (max-width:520px){
+    .offwork-celebrate{padding:14px}
+    .offwork-card{padding:24px 18px 20px;border-radius:24px;max-height:calc(100dvh - 28px)}
+    .offwork-medal{width:68px;height:68px;margin-top:12px}
+    .offwork-medal .icon{width:30px;height:30px}
+    .offwork-stats{gap:6px}
+    .offwork-stats b{font-size:16px}
+    .offwork-actions{flex-direction:column}
+    .offwork-actions .btn{width:100%}
+  }
+
   /* ---------- modal ---------- */
   .modal-backdrop{
     position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;
@@ -1688,6 +1777,28 @@
 
 <div id="toasts" aria-live="polite"></div>
 
+<div class="offwork-celebrate" id="offworkCelebrate" hidden role="dialog" aria-modal="true" aria-labelledby="offworkTitle">
+  <div class="offwork-card">
+    <div class="offwork-badge"><span></span>打卡成功 · 已下班</div>
+    <div class="offwork-medal">
+      <svg class="icon"><use href="#i-sun"/></svg>
+    </div>
+    <h2 id="offworkTitle">下班啦</h2>
+    <p class="offwork-sub" id="offworkSub">今天的班，就上到这里。</p>
+    <div class="offwork-time" id="offworkTime">--:--</div>
+    <div class="offwork-stats">
+      <div><span>今日工时</span><b id="offworkWorked">0h00m</b></div>
+      <div><span id="offworkExtraLabel">加班</span><b id="offworkExtra">0h00m</b></div>
+    </div>
+    <p class="offwork-quote" id="offworkQuote">电脑一关，世界就是你的。</p>
+    <div class="offwork-actions">
+      <button class="btn primary" id="offworkClose" type="button">去享受生活</button>
+      <button class="btn ghost" id="offworkMore" type="button">再撒点彩带</button>
+    </div>
+    <p class="offwork-foot">今天辛苦啦，明天的事明天再说。</p>
+  </div>
+</div>
+
 <div class="modal-backdrop" id="settingsModal" hidden>
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
     <div class="modal-head">
@@ -2287,6 +2398,62 @@
         setTimeout(function(){ if (node.parentNode) node.parentNode.removeChild(node); }, 3400);
       })(p);
     }
+  }
+
+  var OFFWORK_QUOTES = [
+    '电脑一关，世界就是你的。',
+    '今天已经没有 KPI 了，只有晚饭。',
+    '下班后的时间，才叫自己的时间。',
+    '把工位留给老板，把自己还给生活。',
+    '今天到此为止，明天再继续当牛马。',
+    '先吃饭，再散步，别再想那个破需求了。',
+    '班已经上完了，现在去当个正常人。',
+    '关掉显示器，烦恼就和它一起黑屏。'
+  ];
+
+  function showOffWorkCelebrate(clockOutTs, plannedEnd){
+    var overlay = $('#offworkCelebrate');
+    if (!overlay) return;
+    var worked = workedMsOf({ clockIn: state.clockIn, clockOut: clockOutTs }, clockOutTs);
+    var diff = plannedEnd ? clockOutTs - plannedEnd : 0;
+    var extra = Math.abs(diff);
+    var late = diff > 60000;
+    var early = diff < -60000;
+    var extraLabel = $('#offworkExtraLabel');
+    var extraValue = $('#offworkExtra');
+    var title = $('#offworkTitle');
+    var sub = $('#offworkSub');
+    var quote = $('#offworkQuote');
+    if (title) title.textContent = late ? '终于下班' : early ? '提前自由' : '下班啦';
+    if (sub) {
+      sub.textContent = late
+        ? '比计划晚了 ' + fmtHM(extra) + '，今天的你辛苦了。'
+        : early
+          ? '比计划早 ' + fmtHM(extra) + '，这波是你赢了。'
+          : '准点收工，一秒都没多给。';
+    }
+    if (extraLabel) extraLabel.textContent = late ? '加班' : early ? '提前跑' : '状态';
+    if (extraValue) {
+      extraValue.textContent = late || early ? fmtHM(extra) : '准点';
+      extraValue.classList.toggle('hot', late);
+    }
+    $('#offworkTime').textContent = fmtClock(clockOutTs);
+    $('#offworkWorked').textContent = fmtHM(worked);
+    if (quote) quote.textContent = OFFWORK_QUOTES[Math.floor(Math.random() * OFFWORK_QUOTES.length)];
+    overlay.hidden = false;
+    document.body.classList.add('offwork-open');
+    confetti();
+    setTimeout(function(){
+      var btn = $('#offworkClose');
+      if (btn) btn.focus();
+    }, 80);
+  }
+
+  function hideOffWorkCelebrate(){
+    var overlay = $('#offworkCelebrate');
+    if (!overlay || overlay.hidden) return;
+    overlay.hidden = true;
+    document.body.classList.remove('offwork-open');
   }
 
   function baseTitle(){
@@ -4421,6 +4588,8 @@
 
   function punch(){
     var now = Date.now();
+    var justClockedOut = false;
+    var plannedEnd = 0;
     if (!state.clockIn) {
       state.clockIn = now;
       state.sitStart = now;
@@ -4454,19 +4623,18 @@
       hideSitAlert();
       hideCareAlert();
       addLog('punch', '下班打卡 ' + fmtClock(now));
-      var plannedEnd = settings.flexible ? flexOffWorkTs(state.clockIn) : atTime(new Date(now), settings.workEnd).getTime();
-      if (now < plannedEnd) {
-        confetti();
-        toast('提前下班，身体先谢谢你。', 'success');
-      } else {
-        toast('下班打卡成功，今天辛苦了。', 'success');
-      }
+      justClockedOut = true;
+      plannedEnd = settings.flexible ? flexOffWorkTs(state.clockIn) : atTime(new Date(now), settings.workEnd).getTime();
+      toast(now < plannedEnd ? '提前下班，身体先谢谢你。' : '下班打卡成功，今天辛苦了。', 'success');
       beep();
     } else {
       toast('今天已经收工啦，去享受生活。', 'info');
     }
     save();
     renderAll();
+    if (justClockedOut) {
+      setTimeout(function(){ showOffWorkCelebrate(now, plannedEnd); }, 220);
+    }
   }
 
   function openPunchEditor(){
@@ -5140,9 +5308,10 @@
       cls = 'idle';
     } else if (end && now.getTime() >= end) {
       if (state.clockIn) {
-        big = fmtDur(now.getTime() - end);
-        label = '已加班 · 还没打卡下班';
-        status = '无偿加班中，命是自己的';
+        var overtimeMs = Math.max(0, now.getTime() - Math.max(end, state.clockIn));
+        big = fmtDur(overtimeMs);
+        label = '已加班时长 · 还没下班';
+        status = '已经白给 ' + fmtHM(overtimeMs) + '，记得要加班费';
         cls = 'danger';
       } else {
         big = '00:00:00';
@@ -5443,6 +5612,11 @@
   function bindEvents(){
     $('#punchBtn').addEventListener('click', punch);
     $('#editPunchBtn').addEventListener('click', openPunchEditor);
+    $('#offworkClose').addEventListener('click', hideOffWorkCelebrate);
+    $('#offworkMore').addEventListener('click', confetti);
+    $('#offworkCelebrate').addEventListener('click', function(e){
+      if (e.target === this) hideOffWorkCelebrate();
+    });
     $('#savePunchEdit').addEventListener('click', savePunchEdit);
     $('#waterPlus').addEventListener('click', function(){ drink(1); });
     $('#waterMinus').addEventListener('click', function(){ drink(-1); });
@@ -5565,6 +5739,8 @@
 
     document.addEventListener('keydown', function(e){
       if (e.key === 'Escape') {
+        var offworkEl = $('#offworkCelebrate');
+        if (offworkEl && !offworkEl.hidden) { hideOffWorkCelebrate(); return; }
         var careEl = $('#careAlert');
         if (careEl && !careEl.hidden) { snoozeCareAlert(); return; }
         var alertEl = $('#sitAlert');
