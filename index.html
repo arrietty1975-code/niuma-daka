@@ -1697,7 +1697,13 @@
     { name: '端午节', start: '2026-06-19', end: '2026-06-21' },
     { name: '中秋节', start: '2026-09-25', end: '2026-09-27' },
     { name: '国庆节', start: '2026-10-01', end: '2026-10-07' },
-    { name: '元旦', start: '2027-01-01', end: '2027-01-03' }
+    { name: '元旦', start: '2027-01-01', end: '2027-01-03' },
+    { name: '春节', start: '2027-02-05', end: '2027-02-13' },
+    { name: '清明节', start: '2027-04-03', end: '2027-04-05' },
+    { name: '劳动节', start: '2027-05-01', end: '2027-05-05' },
+    { name: '端午节', start: '2027-06-09', end: '2027-06-09' },
+    { name: '中秋节', start: '2027-09-15', end: '2027-09-15' },
+    { name: '国庆节', start: '2027-10-01', end: '2027-10-07' }
   ];
 
   function $(sel, root){ return (root || document).querySelector(sel); }
@@ -2825,6 +2831,8 @@
   /* ---------------- 放假倒计时 ---------------- */
   var calYear = new Date().getFullYear();
   var calMonth = new Date().getMonth();
+  var calWindowYear = calYear;
+  var calWindowMonth = calMonth;
   var calMode = 'year';
   var CAL_HEADERS = ['日', '一', '二', '三', '四', '五', '六'];
 
@@ -2853,7 +2861,7 @@
     var title = $('#calTitle');
     var modeBtn = $('#calModeBtn');
     if (!grid) return;
-    if (title) title.textContent = calMode === 'year' ? calYear + '年' : calYear + '年' + (calMonth + 1) + '月';
+    if (title) title.textContent = calMode === 'year' ? calWindowLabel() : calYear + '年' + (calMonth + 1) + '月';
     if (modeBtn) {
       modeBtn.textContent = calMode === 'year' ? '月' : '年';
       modeBtn.setAttribute('aria-label', calMode === 'year' ? '切换到月视图' : '切换到年视图');
@@ -2895,23 +2903,33 @@
     grid.innerHTML = html;
   }
 
+  function calWindowLabel(){
+    var end = calWindowMonth + 11;
+    var endYear = calWindowYear + Math.floor(end / 12);
+    var endMonth = ((end % 12) + 12) % 12;
+    return calWindowYear + '.' + pad(calWindowMonth + 1) + '-' + endYear + '.' + pad(endMonth + 1);
+  }
+
   function renderYear(now){
     var grid = $('#calGrid');
     if (!grid) return;
     var today = new Date(now);
     var todayKey = dateKey(today);
     var html = '';
-    for (var m = 0; m < 12; m++) {
-      var first = new Date(calYear, m, 1);
+    for (var i = 0; i < 12; i++) {
+      var offset = calWindowMonth + i;
+      var year = calWindowYear + Math.floor(offset / 12);
+      var month = ((offset % 12) + 12) % 12;
+      var first = new Date(year, month, 1);
       var startWd = first.getDay();
-      var days = new Date(calYear, m + 1, 0).getDate();
-      var current = calYear === today.getFullYear() && m === today.getMonth();
-      html += '<div class="cal-year-month' + (current ? ' is-current' : '') + '" data-month="' + m + '" title="' + calYear + '年' + (m + 1) + '月 · 点击查看">';
-      html += '<span class="cal-year-label">' + (m + 1) + '月</span>';
+      var days = new Date(year, month + 1, 0).getDate();
+      var current = year === today.getFullYear() && month === today.getMonth();
+      html += '<div class="cal-year-month' + (current ? ' is-current' : '') + '" data-year="' + year + '" data-month="' + month + '" title="' + year + '年' + (month + 1) + '月 · 点击查看">';
+      html += '<span class="cal-year-label">' + (month + 1) + '月</span>';
       html += '<div class="cal-year-grid">';
       for (var p = 0; p < startWd; p++) html += '<i class="cal-year-day is-blank"></i>';
       for (var day = 1; day <= days; day++) {
-        var d = new Date(calYear, m, day);
+        var d = new Date(year, month, day);
         var key = dateKey(d);
         var info = holidayInfoForDate(d);
         var cls = 'cal-year-day';
@@ -2926,7 +2944,9 @@
 
   function calNav(dir){
     if (calMode === 'year') {
-      calYear += dir;
+      var next = calWindowMonth + dir * 12;
+      calWindowYear += Math.floor(next / 12);
+      calWindowMonth = ((next % 12) + 12) % 12;
       renderCalendar();
       return;
     }
@@ -2937,7 +2957,15 @@
   }
 
   function toggleCalMode(){
-    calMode = calMode === 'year' ? 'month' : 'year';
+    if (calMode === 'year') {
+      calMode = 'month';
+      calYear = calWindowYear;
+      calMonth = calWindowMonth;
+    } else {
+      calMode = 'year';
+      calWindowYear = calYear;
+      calWindowMonth = calMonth;
+    }
     renderCalendar();
   }
 
@@ -4915,8 +4943,10 @@
     $('#calGrid').addEventListener('click', function(e){
       var block = e.target && e.target.closest ? e.target.closest('.cal-year-month') : null;
       if (!block) return;
+      var year = parseInt(block.getAttribute('data-year'), 10);
       var month = parseInt(block.getAttribute('data-month'), 10);
-      if (isNaN(month)) return;
+      if (isNaN(year) || isNaN(month)) return;
+      calYear = year;
       calMonth = month;
       calMode = 'month';
       renderCalendar();
