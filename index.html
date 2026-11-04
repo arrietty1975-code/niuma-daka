@@ -2954,6 +2954,7 @@
 
   /* 桌面透明小窗：只在本机 127.0.0.1 内同步，不经过服务器 */
   var DESKTOP_SYNC_URL = 'http://127.0.0.1:47821';
+  var DESKTOP_SOURCE_ID = 'src-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
   var desktopSyncTimer = null;
   var desktopSyncProbeTimer = null;
   var desktopSyncBusy = false;
@@ -2979,6 +2980,8 @@
       meetingMode: !!settings.meetingMode,
       meta: settings.workStart + ' ~ ' + settings.workEnd + hTip,
       alert: miniAlertState(),
+      sourceId: DESKTOP_SOURCE_ID,
+      focused: !document.hidden,
       updatedAt: now
     };
   }
