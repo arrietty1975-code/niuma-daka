@@ -1060,6 +1060,23 @@
     white-space:pre-wrap;max-height:46vh;overflow:auto;margin:12px 0 0;color:#413c36;
   }
   .modal .hint{font-size:10.5px}
+  .early-punch-modal{width:min(430px,100%)}
+  .early-punch-visual{
+    width:62px;height:62px;margin:2px auto 0;border-radius:50%;display:grid;place-items:center;
+    background:var(--orange-soft);border:1px solid #ffd8bd;color:var(--orange-deep);
+  }
+  .early-punch-visual .icon{width:27px;height:27px}
+  .early-punch-left{
+    margin:16px 0 6px;text-align:center;font-family:ui-monospace,"SF Mono",Menlo,monospace;
+    font-size:clamp(25px,5vw,32px);font-weight:700;letter-spacing:-.03em;color:#b45309;
+    font-variant-numeric:tabular-nums;
+  }
+  .early-punch-sub{margin:0;text-align:center;font-size:12.5px;line-height:1.7;color:#5f584d}
+  .early-punch-plan{
+    margin:12px 0 0;padding:9px 12px;border-radius:11px;background:#fff8f1;border:1px dashed #f2d3b8;
+    font-size:10.5px;line-height:1.6;color:#8a6a4e;text-align:center;
+  }
+  .early-punch-plan b{color:#b45309;font-weight:800}
 
   /* ---------- full screen sitting alert ---------- */
   .sit-alert{
@@ -1877,6 +1894,26 @@
   </div>
 </div>
 
+<div class="modal-backdrop" id="earlyPunchModal" hidden>
+  <div class="modal early-punch-modal" role="dialog" aria-modal="true" aria-labelledby="earlyPunchTitle">
+    <div class="modal-head">
+      <h2 id="earlyPunchTitle">还没到下班点</h2>
+      <button class="icon-btn" type="button" data-close aria-label="关闭">&times;</button>
+    </div>
+    <div class="early-punch-visual">
+      <svg class="icon"><use href="#i-clock"/></svg>
+    </div>
+    <p class="early-punch-left" id="earlyPunchLeft">距离下班还有 00:00:00</p>
+    <p class="early-punch-sub">现在打卡会记为提前下班，确定要走吗？</p>
+    <p class="early-punch-plan">计划下班 <b id="earlyPunchTime">--:--</b> · 提前走可以，别忘了这一天也算数。</p>
+    <div class="modal-foot">
+      <span class="spacer"></span>
+      <button class="btn soft" id="earlyPunchCancel" type="button">再撑一下</button>
+      <button class="btn primary" id="earlyPunchConfirm" type="button">提前下班</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-backdrop" id="reportModal" hidden>
   <div class="modal wide" role="dialog" aria-modal="true" aria-labelledby="reportTitle">
     <div class="modal-head">
@@ -1987,6 +2024,7 @@
   var notifyPromptTried = false;
   var customHolidays = [];
   var ventHistory = [];
+  var earlyPunchTimer = null;
 
   var STATIC_HOLIDAYS = [
     { name: '元旦', start: '2026-01-01', end: '2026-01-03' },
@@ -4586,7 +4624,25 @@
     }
   }
 
-  function punch(){
+  function openEarlyPunchModal(remaining, plannedEnd){
+    var box = $('#earlyPunchModal');
+    if (!box) return;
+    $('#earlyPunchLeft').textContent = '距离下班还有 ' + fmtDur(remaining);
+    $('#earlyPunchTime').textContent = fmtClock(plannedEnd) + ' 下班';
+    openModal('earlyPunchModal');
+    if (earlyPunchTimer) clearInterval(earlyPunchTimer);
+    earlyPunchTimer = setInterval(function(){
+      var modal = $('#earlyPunchModal');
+      if (!modal || modal.hidden) { clearInterval(earlyPunchTimer); earlyPunchTimer = null; return; }
+      $('#earlyPunchLeft').textContent = '距离下班还有 ' + fmtDur(Math.max(0, plannedEnd - Date.now()));
+    }, 1000);
+    setTimeout(function(){
+      var btn = $('#earlyPunchCancel');
+      if (btn) btn.focus();
+    }, 60);
+  }
+
+  function punch(forceEarly){
     var now = Date.now();
     var justClockedOut = false;
     var plannedEnd = 0;
@@ -4607,6 +4663,11 @@
       toast(settings.flexible ? '打卡成功，预计 ' + fmtClock(planned) + ' 下班。' : '打卡成功。今天也要好好活着。', 'success');
       beep();
     } else if (!state.clockOut) {
+      plannedEnd = settings.flexible ? flexOffWorkTs(state.clockIn) : atTime(new Date(now), settings.workEnd).getTime();
+      if (forceEarly !== true && plannedEnd && now < plannedEnd - 60000) {
+        openEarlyPunchModal(plannedEnd - now, plannedEnd);
+        return;
+      }
       state.clockOut = now;
       if (state.sitStart) {
         state.sittingTotal = (state.sittingTotal || 0) + Math.max(0, now - state.sitStart);
@@ -4624,7 +4685,6 @@
       hideCareAlert();
       addLog('punch', '下班打卡 ' + fmtClock(now));
       justClockedOut = true;
-      plannedEnd = settings.flexible ? flexOffWorkTs(state.clockIn) : atTime(new Date(now), settings.workEnd).getTime();
       toast(now < plannedEnd ? '提前下班，身体先谢谢你。' : '下班打卡成功，今天辛苦了。', 'success');
       beep();
     } else {
@@ -5612,6 +5672,11 @@
   function bindEvents(){
     $('#punchBtn').addEventListener('click', punch);
     $('#editPunchBtn').addEventListener('click', openPunchEditor);
+    $('#earlyPunchCancel').addEventListener('click', function(){ closeModal($('#earlyPunchModal')); });
+    $('#earlyPunchConfirm').addEventListener('click', function(){
+      closeModal($('#earlyPunchModal'));
+      punch(true);
+    });
     $('#offworkClose').addEventListener('click', hideOffWorkCelebrate);
     $('#offworkMore').addEventListener('click', confetti);
     $('#offworkCelebrate').addEventListener('click', function(e){
