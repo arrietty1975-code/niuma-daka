@@ -5013,9 +5013,9 @@
       } catch (err) { /* ignore */ }
     });
     document.addEventListener('visibilitychange', function(){
-      if (document.hidden || !settings.desktopSync) return;
+      if (!settings.desktopSync) return;
       if (desktopSyncConnected) pushDesktopState();
-      else probeDesktopSync();
+      else if (!document.hidden) probeDesktopSync();
     });
 
     if (settings.city) {
