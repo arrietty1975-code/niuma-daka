@@ -4816,6 +4816,11 @@
         }
       } catch (err) { /* ignore */ }
     });
+    document.addEventListener('visibilitychange', function(){
+      if (document.hidden || !settings.desktopSync) return;
+      if (desktopSyncConnected) pushDesktopState();
+      else probeDesktopSync();
+    });
 
     if (settings.city) {
       $('#weatherCity').value = settings.city;
