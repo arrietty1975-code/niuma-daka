@@ -983,6 +983,7 @@
   <symbol id="i-dumbbell" viewBox="0 0 24 24"><path d="M7 8v8M4.5 9.5v5M17 8v8M19.5 9.5v5"/><path d="M7 12h10M2.5 12h2M19.5 12h2"/></symbol>
   <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 9.5h17"/><path d="M8 3v3.5M16 3v3.5"/><path d="M8 13.5h.01M12 13.5h.01M16 13.5h.01M8 17h.01M12 17h.01"/></symbol>
   <symbol id="i-cloud" viewBox="0 0 24 24"><path d="M7.5 18.5a4.2 4.2 0 0 1-.3-8.4A5.8 5.8 0 0 1 17.7 9a3.7 3.7 0 0 1 .3 9.5H7.5z"/></symbol>
+  <symbol id="i-pip" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2.5"/><rect x="12" y="11" width="7" height="6" rx="1.5"/></symbol>
   <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M15.5 6.5V5A1.5 1.5 0 0 0 14 3.5H5A1.5 1.5 0 0 0 3.5 5v9A1.5 1.5 0 0 0 5 15.5h1.5"/></symbol>
   <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13 2L5 13h5l-1 9 8-11h-5l1-9z"/></symbol>
   <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M18.4 5.6l-2.8 2.8M8.4 15.6l-2.8 2.8"/></symbol>
@@ -1034,6 +1035,9 @@
         <button class="btn primary" id="punchBtn" type="button">上班打卡</button>
         <button class="btn ghost" id="reportBtn" type="button">
           <svg class="icon"><use href="#i-copy"/></svg>生成今日日报
+        </button>
+        <button class="btn ghost" id="miniBtn" type="button">
+          <svg class="icon"><use href="#i-pip"/></svg>小窗模式
         </button>
       </div>
     </div>
@@ -3136,6 +3140,285 @@
     }, { timeout: 12000 });
   }
 
+  /* ---------------- 小窗模式 ---------------- */
+  var miniWin = null;
+  var miniTimer = null;
+  var miniMode = '';
+  var miniLastRemind = 0;
+
+  var MINI_CSS = [
+    '*{box-sizing:border-box;margin:0;padding:0}',
+    'html,body{width:100%;height:100%;overflow:hidden;background:#191816}',
+    'body{font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,sans-serif;color:#fff}',
+    '.mini{height:100%;display:flex;flex-direction:column;padding:15px 16px;background:radial-gradient(130% 90% at 100% 0%,rgba(255,90,31,.28),transparent 58%),#191816;position:relative}',
+    '.mini-head{display:flex;align-items:center;gap:8px;font-size:11px;color:rgba(255,255,255,.62)}',
+    '.mini-head .dot{width:7px;height:7px;border-radius:50%;background:#4ade80;box-shadow:0 0 0 4px rgba(74,222,128,.15);flex:none}',
+    '.mini-head .dot.idle{background:#fbbf24;box-shadow:0 0 0 4px rgba(251,191,36,.15)}',
+    '.mini-head .dot.danger{background:#ff6b5b;box-shadow:0 0 0 4px rgba(255,107,91,.18);animation:miniPulse 1.4s infinite}',
+    '@keyframes miniPulse{0%,100%{opacity:1}50%{opacity:.35}}',
+    '.mini-label{margin-top:auto;font-size:10.5px;letter-spacing:.2em;color:rgba(255,255,255,.5)}',
+    '.mini-count{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:46px;font-weight:800;line-height:1;letter-spacing:-.02em;font-variant-numeric:tabular-nums;margin:6px 0}',
+    '.mini-meta{font-size:11px;color:rgba(255,255,255,.55);line-height:1.5}',
+    '.mini-stats{display:flex;justify-content:space-between;gap:6px;margin-top:10px;padding-top:9px;border-top:1px solid rgba(255,255,255,.1);font-size:10.5px;color:rgba(255,255,255,.55)}',
+    '.mini-stats b{color:#fff;font-size:13px;font-weight:800;margin:0 1px}',
+    '.mini-alert{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:18px}',
+    '.mini-alert.sit{background:radial-gradient(circle at 50% 0%,rgba(255,255,255,.18),transparent 60%),linear-gradient(160deg,#e2382a,#9f1f15)}',
+    '.mini-alert.water{background:radial-gradient(circle at 50% 0%,rgba(255,255,255,.2),transparent 60%),linear-gradient(160deg,#2f6bff,#1a3fae)}',
+    '.mini-alert.eye{background:radial-gradient(circle at 50% 0%,rgba(255,255,255,.2),transparent 60%),linear-gradient(160deg,#0fa968,#087144)}',
+    '.mini-alert .pill{font-size:9.5px;letter-spacing:.18em;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.22);padding:4px 9px;border-radius:999px}',
+    '.mini-alert h2{font-size:28px;line-height:1.1;font-weight:900;letter-spacing:-.02em;margin:13px 0 6px}',
+    '.mini-alert .time{font-size:11px;color:rgba(255,255,255,.85)}',
+    '.mini-alert .time b{display:block;font-size:32px;line-height:1;font-weight:800;margin-bottom:3px;font-variant-numeric:tabular-nums}',
+    '.mini-alert .copy{font-size:11px;line-height:1.6;color:rgba(255,255,255,.75);margin-top:8px;max-width:250px}',
+    '.mini-alert-actions{display:flex;flex-direction:column;gap:8px;width:100%;max-width:260px;margin-top:16px}',
+    '.mini-alert-actions button{border:none;border-radius:11px;padding:10px 12px;font:inherit;font-size:12.5px;font-weight:700;cursor:pointer}',
+    '.mini-alert-actions .primary{background:#fff;color:#1b1b1b}',
+    '.mini-alert-actions .ghost{background:rgba(255,255,255,.16);color:#fff;border:1px solid rgba(255,255,255,.22)}'
+  ].join('');
+
+  function miniAlertState(){
+    if (!$('#sitAlert').hidden) {
+      return {
+        type: 'sit', pill: '久坐警报', title: '该起来活动了',
+        mins: parseInt($('#alertMinutes').textContent, 10) || 0,
+        copy: '腰、颈椎和眼睛正在联名抗议', primary: '我起身了', secondary: '再坐 5 分钟'
+      };
+    }
+    if (!$('#careAlert').hidden) {
+      var isWater = careType === 'water';
+      var text = $('#careTime') ? $('#careTime').innerText : '';
+      var match = text.match(/(\d+)/);
+      return {
+        type: isWater ? 'water' : 'eye',
+        pill: isWater ? '喝水警报' : '护眼警报',
+        title: isWater ? '该喝水了' : '让眼睛歇一下',
+        mins: match ? Number(match[1]) : 0,
+        copy: isWater ? '身体缺水，脑子转得慢' : '眼睛干涩、发酸',
+        primary: isWater ? '我喝水了' : '我远眺了',
+        secondary: '10 分钟后提醒'
+      };
+    }
+    return null;
+  }
+
+  function renderMiniBase(){
+    if (!miniWin) return;
+    miniWin.document.getElementById('miniRoot').innerHTML =
+      '<div class="mini">' +
+        '<div class="mini-head"><span class="dot" id="miniDot"></span><span id="miniStatus">搬砖中</span></div>' +
+        '<div class="mini-label" id="miniLabel">距离下班</div>' +
+        '<div class="mini-count" id="miniCount">--:--:--</div>' +
+        '<div class="mini-meta" id="miniMeta"></div>' +
+        '<div class="mini-stats">' +
+          '<span>水 <b id="miniWater">0</b> 杯</span>' +
+          '<span>坐 <b id="miniSit">0</b> 分</span>' +
+          '<span>眼 <b id="miniEye">0</b>/3</span>' +
+        '</div>' +
+      '</div>';
+  }
+
+  function updateMiniBaseValues(){
+    if (!miniWin) return;
+    var doc = miniWin.document;
+    var now = new Date();
+    var start = atTime(now, settings.workStart);
+    var end = atTime(now, settings.workEnd);
+    var big, label, status, dot = '';
+    if (state.clockOut) {
+      big = fmtDur(state.clockOut - state.clockIn);
+      label = '今日工时 · 已下班';
+      status = '已下班，快跑';
+    } else if (settings.meetingMode) {
+      big = fmtDur(Math.max(0, end - now));
+      label = '距离下班';
+      status = '开会模式 · 提醒暂停';
+      dot = 'idle';
+    } else if (now >= end) {
+      if (state.clockIn) {
+        big = fmtDur(now - end);
+        label = '已加班 · 还没下班';
+        status = '无偿加班中';
+        dot = 'danger';
+      } else {
+        big = '00:00:00';
+        label = '已过下班点';
+        status = '今天没打卡';
+        dot = 'idle';
+      }
+    } else {
+      big = fmtDur(end - now);
+      label = state.clockIn ? '距离下班' : '距离下班 · 未打卡';
+      status = state.clockIn ? '搬砖中' : '还没打卡';
+      dot = state.clockIn ? '' : 'idle';
+    }
+    doc.getElementById('miniCount').textContent = big;
+    doc.getElementById('miniLabel').textContent = label;
+    doc.getElementById('miniStatus').textContent = status;
+    doc.getElementById('miniDot').className = 'dot ' + dot;
+    var hTip = '';
+    var next = nextHolidayInfo(Date.now())[0];
+    if (next) {
+      if (Date.now() < next.startTs) hTip = ' · ' + next.name + ' ' + Math.max(1, Math.ceil((next.startTs - Date.now()) / 86400000)) + ' 天后';
+      else hTip = ' · ' + next.name + ' 放假中';
+    }
+    doc.getElementById('miniMeta').textContent = settings.workStart + ' ~ ' + settings.workEnd + hTip;
+    doc.getElementById('miniWater').textContent = state.water;
+    doc.getElementById('miniSit').textContent = Math.floor(sitMsOf(state) / 60000);
+    doc.getElementById('miniEye').textContent = state.eyeRest;
+  }
+
+  function bindMiniActions(alertState){
+    if (!miniWin) return;
+    var doc = miniWin.document;
+    var primary = doc.getElementById('miniPrimary');
+    var secondary = doc.getElementById('miniSecondary');
+    if (!primary || !secondary) return;
+    primary.addEventListener('click', function(){
+      if (alertState.type === 'sit') alertStandNow();
+      else carePrimaryAction();
+      miniMode = '';
+      updateMiniWindow(true);
+    });
+    secondary.addEventListener('click', function(){
+      if (alertState.type === 'sit') snoozeSitAlert();
+      else snoozeCareAlert();
+      miniMode = '';
+      updateMiniWindow(true);
+    });
+  }
+
+  function renderMiniAlert(alertState){
+    if (!miniWin) return;
+    miniWin.document.getElementById('miniRoot').innerHTML =
+      '<div class="mini-alert ' + alertState.type + '">' +
+        '<div class="pill">' + alertState.pill + ' · NIUMA OS</div>' +
+        '<h2>' + alertState.title + '</h2>' +
+        '<div class="time"><b>' + alertState.mins + '</b>分钟</div>' +
+        '<p class="copy">' + alertState.copy + '</p>' +
+        '<div class="mini-alert-actions">' +
+          '<button class="primary" id="miniPrimary" type="button">' + alertState.primary + '</button>' +
+          '<button class="ghost" id="miniSecondary" type="button">' + alertState.secondary + '</button>' +
+        '</div>' +
+      '</div>';
+    bindMiniActions(alertState);
+  }
+
+  function updateMiniWindow(force){
+    if (!miniWin || miniWin.closed) return;
+    if (!miniWin.document.getElementById('miniRoot')) return;
+    var alertState = miniAlertState();
+    var mode = alertState ? alertState.type : 'base';
+    if (force || mode !== miniMode) {
+      miniMode = mode;
+      if (alertState) renderMiniAlert(alertState);
+      else renderMiniBase();
+    }
+    if (!alertState) updateMiniBaseValues();
+  }
+
+  function miniCleanup(win){
+    if (miniWin === win) {
+      miniWin = null;
+      miniMode = '';
+    }
+    if (miniTimer) {
+      try { win.clearInterval(miniTimer); } catch (err) { /* ignore */ }
+      miniTimer = null;
+    }
+  }
+
+  function initMiniWindow(win){
+    miniWin = win;
+    var doc = win.document;
+    var meta = doc.createElement('meta');
+    meta.setAttribute('charset', 'utf-8');
+    doc.head.appendChild(meta);
+    var style = doc.createElement('style');
+    style.textContent = MINI_CSS;
+    doc.head.appendChild(style);
+    doc.title = '牛马倒计时';
+    doc.body.innerHTML = '<div id="miniRoot"></div>';
+    doc.documentElement.style.height = '100%';
+    doc.body.style.height = '100%';
+
+    win.addEventListener('pagehide', function(){
+      miniCleanup(win);
+      toast('小窗已关闭。', 'info');
+    });
+    win.addEventListener('beforeunload', function(){
+      miniCleanup(win);
+    });
+    try { win.focus(); } catch (err) { /* ignore */ }
+
+    if (miniTimer) {
+      try { win.clearInterval(miniTimer); } catch (err) { /* ignore */ }
+    }
+    miniLastRemind = 0;
+    miniTimer = win.setInterval(function(){
+      var t = Date.now();
+      if (t - miniLastRemind > 5000) {
+        miniLastRemind = t;
+        try { maybeRemind(); } catch (err) { /* ignore */ }
+      }
+      updateMiniWindow();
+    }, 500);
+
+    miniMode = '';
+    updateMiniWindow(true);
+  }
+
+  function openPopupMini(){
+    var win = window.open('', 'niuma_mini', 'width=340,height=300,menubar=no,toolbar=no,location=no,status=no,resizable=yes');
+    if (!win) {
+      toast('小窗被浏览器拦截了，请允许弹窗后重试。', 'warn');
+      return;
+    }
+    initMiniWindow(win);
+    toast('小窗已打开，可以拖到屏幕角落。', 'success');
+  }
+
+  function openMiniWindow(){
+    if (miniWin && !miniWin.closed) {
+      try { miniWin.focus(); } catch (err) { /* ignore */ }
+      return;
+    }
+    if ('documentPictureInPicture' in window && typeof documentPictureInPicture.requestWindow === 'function') {
+      var settled = false;
+      var fallbackTimer = setTimeout(function(){
+        if (!settled) {
+          settled = true;
+          openPopupMini();
+        }
+      }, 1200);
+      try {
+        documentPictureInPicture.requestWindow({ width: 340, height: 300 }).then(function(win){
+          clearTimeout(fallbackTimer);
+          if (settled || miniWin) {
+            try { win.close(); } catch (err) { /* ignore */ }
+            return;
+          }
+          settled = true;
+          initMiniWindow(win);
+          toast('小窗已打开，可以拖到屏幕角落固定。', 'success');
+        }).catch(function(){
+          clearTimeout(fallbackTimer);
+          if (!settled) {
+            settled = true;
+            openPopupMini();
+          }
+        });
+      } catch (err) {
+        clearTimeout(fallbackTimer);
+        if (!settled) {
+          settled = true;
+          openPopupMini();
+        }
+      }
+    } else {
+      openPopupMini();
+    }
+  }
+
   /* ---------------- actions ---------------- */
   function drink(delta){
     var before = state.water;
@@ -4341,6 +4624,7 @@
     $('#holidayAdd').addEventListener('click', addCustomHoliday);
     $('#calPrev').addEventListener('click', function(){ calNav(-1); });
     $('#calNext').addEventListener('click', function(){ calNav(1); });
+    $('#miniBtn').addEventListener('click', openMiniWindow);
     $('#weatherGo').addEventListener('click', function(){ fetchWeather($('#weatherCity').value); });
     $('#weatherLoc').addEventListener('click', locateWeather);
     $('#weatherCity').addEventListener('keydown', function(e){
