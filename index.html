@@ -606,23 +606,23 @@
     font-weight:700;padding:9px 16px;cursor:pointer;font-size:12.5px;
   }
   .holiday-custom button:active{transform:scale(.97)}
-  .holiday-cal-wrap{margin-top:16px;border-top:1px dashed var(--line);padding-top:12px}
-  .cal-head{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+  .holiday-cal-wrap{margin-top:12px;border-top:1px dashed var(--line);padding-top:10px}
+  .cal-head{display:flex;align-items:center;gap:6px;margin-bottom:6px}
   .cal-nav{
-    width:28px;height:28px;border-radius:9px;border:1px solid var(--line);background:#fff;
-    color:var(--muted);cursor:pointer;font-size:16px;line-height:1;flex:none;
+    width:24px;height:24px;border-radius:8px;border:1px solid var(--line);background:#fff;
+    color:var(--muted);cursor:pointer;font-size:14px;line-height:1;flex:none;
   }
   .cal-nav:hover{color:var(--orange);border-color:#ffc4a6}
-  #calTitle{font-size:13px;font-weight:800;flex:1;text-align:center;letter-spacing:.02em}
-  .cal-legend{display:inline-flex;gap:12px;font-size:10px;color:var(--muted);flex:none}
-  .cal-legend i{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:4px;vertical-align:-1px}
+  #calTitle{font-size:12px;font-weight:800;flex:1;text-align:center;letter-spacing:.02em}
+  .cal-legend{display:inline-flex;gap:9px;font-size:9.5px;color:var(--muted);flex:none}
+  .cal-legend i{display:inline-block;width:8px;height:8px;border-radius:3px;margin-right:3px;vertical-align:-1px}
   .cal-legend .lg-holiday{background:var(--orange-soft);border:1px solid #ffc4a6}
   .cal-legend .lg-today{background:#fff;border:1px solid var(--orange)}
-  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
-  .cal-wd{text-align:center;font-size:10px;color:var(--muted);padding:2px 0}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+  .cal-wd{text-align:center;font-size:9.5px;color:var(--muted);padding:1px 0}
   .cal-cell{
-    position:relative;min-height:46px;border-radius:10px;border:1px solid transparent;
-    padding:6px 3px;text-align:center;font-size:12px;color:var(--ink);
+    position:relative;min-height:34px;border-radius:8px;border:1px solid transparent;
+    padding:4px 2px;text-align:center;font-size:11px;color:var(--ink);
   }
   .cal-cell .cal-day{font-variant-numeric:tabular-nums;font-weight:600}
   .cal-cell.is-holiday{background:var(--orange-soft);border-color:#ffc4a6;color:var(--orange-deep)}
@@ -630,19 +630,19 @@
   .cal-cell.is-past{opacity:.42}
   .cal-cell.is-past.is-holiday{opacity:.6}
   .cal-cell .cal-left{
-    position:absolute;top:3px;right:4px;font-size:8px;line-height:1;color:#e8470f;font-weight:700;
+    position:absolute;top:2px;right:2px;font-size:7px;line-height:1;color:#e8470f;font-weight:700;
   }
   .cal-cell .cal-name{
-    position:absolute;left:3px;right:3px;top:24px;font-size:8px;line-height:1;white-space:nowrap;
+    position:absolute;left:2px;right:2px;top:19px;font-size:7.5px;line-height:1;white-space:nowrap;
     overflow:hidden;text-overflow:ellipsis;color:#b45309;font-weight:700;
   }
   .cal-cell .cal-dot{
-    position:absolute;left:50%;transform:translateX(-50%);top:25px;width:4px;height:4px;border-radius:50%;background:#ff7a4c;
+    position:absolute;left:50%;transform:translateX(-50%);top:21px;width:3px;height:3px;border-radius:50%;background:#ff7a4c;
   }
   .cal-blank{visibility:hidden}
   @media (max-width:480px){
-    .cal-cell{min-height:42px;padding:5px 2px}
-    #calTitle{font-size:12px}
+    .cal-cell{min-height:32px;padding:3px 1px}
+    #calTitle{font-size:11px}
     .cal-legend{display:none}
   }
   @media (max-width:720px){
@@ -2812,7 +2812,7 @@
         var startKey = dateKey(new Date(info.startTs));
         if (key === startKey) {
           var daysLeft = Math.ceil((info.startTs - todayStart) / 86400000);
-          if (daysLeft > 0) inner += '<em class="cal-left">' + daysLeft + '天后</em>';
+          if (daysLeft > 0) inner += '<em class="cal-left">' + daysLeft + '天</em>';
           inner += '<b class="cal-name">' + info.name + '</b>';
         } else {
           inner += '<i class="cal-dot"></i>';
