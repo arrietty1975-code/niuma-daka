@@ -920,6 +920,10 @@
     font:inherit;color:var(--ink);font-size:13.5px;outline:none;transition:.18s;width:100%;
   }
   .field input:focus{border-color:var(--orange);box-shadow:0 0 0 3px rgba(255,90,31,.12)}
+  .field input:disabled{opacity:.55;background:#f8f4ed;cursor:not-allowed}
+  .duration-input{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+  .duration-input input{width:76px;flex:none;text-align:center}
+  .duration-input em{font-style:normal;font-size:11px;font-weight:600;color:var(--muted)}
   .field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
   .switch-row{
     display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 2px;
@@ -1647,10 +1651,32 @@
       <button class="icon-btn" type="button" data-close aria-label="关闭">&times;</button>
     </div>
     <label class="field"><span>花名</span><input id="setName" maxlength="12" autocomplete="off"></label>
-    <div class="field-row">
+    <div class="field">
+      <span>上下班模式</span>
+      <div class="seg work-mode" id="setWorkMode">
+        <button type="button" data-mode="fixed" class="active">固定时间</button>
+        <button type="button" data-mode="flexible">弹性工时</button>
+      </div>
+    </div>
+    <div class="field-row" id="fixedTimeRow">
       <label class="field"><span>上班时间</span><input type="time" id="setStart"></label>
       <label class="field"><span>下班时间</span><input type="time" id="setEnd"></label>
     </div>
+    <div class="field" id="flexWorkField" hidden>
+      <span>每日工作时长（不含午休）</span>
+      <div class="duration-input">
+        <input type="number" id="setWorkHours" min="0" max="16" step="1" inputmode="numeric" aria-label="工作小时">
+        <em>小时</em>
+        <input type="number" id="setWorkMins" min="0" max="59" step="5" inputmode="numeric" aria-label="工作分钟">
+        <em>分钟</em>
+      </div>
+    </div>
+    <div class="field-row" id="flexLunchRow" hidden>
+      <label class="field"><span>午休开始</span><input type="time" id="setLunchStart"></label>
+      <label class="field"><span>午休结束</span><input type="time" id="setLunchEnd"></label>
+    </div>
+    <label class="switch-row" id="flexLunchSwitch" hidden><span>午休不计入工作时长</span><input type="checkbox" id="setLunchEnabled"></label>
+    <p class="field-hint" id="flexHint" hidden>弹性模式下，下班时间 = 上班打卡时间 + 每日工作时长，并自动跳过午休。</p>
     <div class="field-row">
       <label class="field"><span>每日喝水目标（杯）</span><input type="number" id="setWater" min="1" max="20" step="1"></label>
       <label class="field"><span>久坐提醒阈值（分钟）</span><input type="number" id="setSit" min="10" max="180" step="5"></label>
@@ -1757,6 +1783,11 @@
     name: '牛马一号',
     workStart: '09:30',
     workEnd: '18:30',
+    flexible: false,
+    workMinutes: 480,
+    lunchEnabled: true,
+    lunchStart: '12:00',
+    lunchEnd: '13:00',
     waterGoal: 8,
     sitLimit: 45,
     waterRemindMin: 60,
@@ -1887,23 +1918,86 @@
     if (s.fishStart) t += Math.max(0, now - s.fishStart);
     return t;
   }
+  function lunchRangeFor(dayTs){
+    if (!settings.lunchEnabled) return null;
+    var start = atTime(new Date(dayTs), settings.lunchStart).getTime();
+    var end = atTime(new Date(dayTs), settings.lunchEnd).getTime();
+    if (!(end > start)) return null;
+    return { start: start, end: end };
+  }
+
+  function flexOffWorkTs(clockIn){
+    var req = Math.max(1, Number(settings.workMinutes) || 0) * 60000;
+    var lunch = lunchRangeFor(clockIn);
+    var off = clockIn + req;
+    if (lunch) {
+      if (clockIn >= lunch.start && clockIn < lunch.end) {
+        off = lunch.end + req;
+      } else if (clockIn < lunch.start && off > lunch.start) {
+        off += (lunch.end - lunch.start);
+      }
+    }
+    return off;
+  }
+
+  function plannedOffWorkTs(now){
+    if (settings.flexible) {
+      return state.clockIn ? flexOffWorkTs(state.clockIn) : 0;
+    }
+    return atTime(new Date(now || Date.now()), settings.workEnd).getTime();
+  }
+
+  function scheduleMeta(now){
+    if (!settings.flexible) return settings.workStart + ' ~ ' + settings.workEnd;
+    if (state.clockIn) return '弹性 · ' + fmtClock(flexOffWorkTs(state.clockIn)) + ' 下班';
+    return '弹性 · 每日 ' + fmtHM((Number(settings.workMinutes) || 480) * 60000) + '（不含午休）';
+  }
+
+  function workedMsOf(s, endTs){
+    if (!s || !s.clockIn) return 0;
+    var end = endTs || s.clockOut || Date.now();
+    var ms = Math.max(0, end - s.clockIn);
+    if (settings.flexible) {
+      var lunch = lunchRangeFor(s.clockIn);
+      if (lunch) {
+        ms -= Math.max(0, Math.min(end, lunch.end) - Math.max(s.clockIn, lunch.start));
+      }
+    }
+    return Math.max(0, ms);
+  }
+
   function workedMs(){
-    if (!state.clockIn) return 0;
-    return Math.max(0, (state.clockOut || Date.now()) - state.clockIn);
+    return workedMsOf(state, state.clockOut || Date.now());
+  }
+
+  function updateScheduleLabels(){
+    if (settings.flexible) {
+      var off = state.clockIn ? flexOffWorkTs(state.clockIn) : 0;
+      $('#workStartLabel').textContent = state.clockIn ? fmtClock(state.clockIn) : '未打卡';
+      $('#workEndLabel').textContent = state.clockIn ? fmtClock(off) : '打卡后算';
+    } else {
+      $('#workStartLabel').textContent = settings.workStart;
+      $('#workEndLabel').textContent = settings.workEnd;
+    }
   }
 
   function calcScore(s, now){
     s = s || state;
     now = now || Date.now();
-    var start = atTime(new Date(now), settings.workStart);
-    var end = atTime(new Date(now), settings.workEnd);
-    var dayMs = Math.max(3600000, end - start);
-    var elapsedH = (now - start) / 3600000;
-    elapsedH = Math.max(0, Math.min(elapsedH, dayMs / 3600000));
-    if (s.clockIn && !s.clockOut) {
-      elapsedH = Math.max(elapsedH, (now - s.clockIn) / 3600000);
+    var elapsedH;
+    if (settings.flexible) {
+      elapsedH = workedMsOf(s, s.clockOut || now) / 3600000;
+    } else {
+      var start = atTime(new Date(now), settings.workStart);
+      var end = atTime(new Date(now), settings.workEnd);
+      var dayMs = Math.max(3600000, end - start);
+      elapsedH = (now - start) / 3600000;
+      elapsedH = Math.max(0, Math.min(elapsedH, dayMs / 3600000));
+      if (s.clockIn && !s.clockOut) {
+        elapsedH = Math.max(elapsedH, (now - s.clockIn) / 3600000);
+      }
     }
-    var targetStands = Math.max(2, Math.round(elapsedH));
+    var targetStands = Math.max(2, Math.round(Math.max(0, elapsedH)));
     var p = {
       water: Math.min((s.water || 0) / settings.waterGoal, 1),
       stand: Math.min((s.standCount || 0) / targetStands, 1),
@@ -1984,6 +2078,11 @@
     settings.sound = !!settings.sound;
     settings.desktopSync = !!settings.desktopSync;
     settings.browserMini = !!settings.browserMini;
+    settings.flexible = !!settings.flexible;
+    settings.workMinutes = Math.min(16 * 60, Math.max(30, Number(settings.workMinutes) || 480));
+    settings.lunchEnabled = !!settings.lunchEnabled;
+    settings.lunchStart = settings.lunchStart || '12:00';
+    settings.lunchEnd = settings.lunchEnd || '13:00';
     if (!state) state = newDay();
     state.exercises = Array.isArray(state.exercises) ? state.exercises : [];
     state.restDay = !!state.restDay;
@@ -3108,10 +3207,17 @@
       water: state.water || 0,
       sitMs: sitMsOf(state, now),
       eyeRest: state.eyeRest || 0,
+      workedMs: workedMs(),
       workStart: settings.workStart,
       workEnd: settings.workEnd,
+      flexible: !!settings.flexible,
+      offWork: plannedOffWorkTs(now),
+      workMinutes: Number(settings.workMinutes) || 480,
+      lunchEnabled: !!settings.lunchEnabled,
+      lunchStart: settings.lunchStart,
+      lunchEnd: settings.lunchEnd,
       meetingMode: !!settings.meetingMode,
-      meta: settings.workStart + ' ~ ' + settings.workEnd + hTip,
+      meta: scheduleMeta(now) + hTip,
       alert: miniAlertState(),
       sourceId: DESKTOP_SOURCE_ID,
       focused: document.hasFocus() && !document.hidden,
@@ -3703,21 +3809,26 @@
     if (!miniWin) return;
     var doc = miniWin.document;
     var now = new Date();
-    var start = atTime(now, settings.workStart);
-    var end = atTime(now, settings.workEnd);
+    var flexible = !!settings.flexible;
+    var end = plannedOffWorkTs(now.getTime());
     var big, label, status, dot = '';
     if (state.clockOut) {
-      big = fmtDur(state.clockOut - state.clockIn);
+      big = fmtDur(workedMs());
       label = '今日工时 · 已下班';
       status = '已下班，快跑';
     } else if (settings.meetingMode) {
-      big = fmtDur(Math.max(0, end - now));
-      label = '距离下班';
+      big = end ? fmtDur(Math.max(0, end - now.getTime())) : fmtDur((Number(settings.workMinutes) || 480) * 60000);
+      label = end ? '距离下班' : '每日工时';
       status = '开会模式 · 提醒暂停';
       dot = 'idle';
-    } else if (now >= end) {
+    } else if (flexible && !state.clockIn) {
+      big = fmtDur((Number(settings.workMinutes) || 480) * 60000);
+      label = '每日工时 · 不含午休';
+      status = '打卡后算下班';
+      dot = 'idle';
+    } else if (end && now.getTime() >= end) {
       if (state.clockIn) {
-        big = fmtDur(now - end);
+        big = fmtDur(now.getTime() - end);
         label = '已加班 · 还没下班';
         status = '无偿加班中';
         dot = 'danger';
@@ -3727,11 +3838,16 @@
         status = '今天没打卡';
         dot = 'idle';
       }
-    } else {
-      big = fmtDur(end - now);
+    } else if (end) {
+      big = fmtDur(end - now.getTime());
       label = state.clockIn ? '距离下班' : '距离下班 · 未打卡';
-      status = state.clockIn ? '搬砖中' : '还没打卡';
+      status = state.clockIn ? (flexible ? '弹性 · ' + fmtClock(end) + ' 下班' : '搬砖中') : '还没打卡';
       dot = state.clockIn ? '' : 'idle';
+    } else {
+      big = '--:--:--';
+      label = '距离下班';
+      status = '等待打卡';
+      dot = 'idle';
     }
     doc.getElementById('miniCount').textContent = big;
     doc.getElementById('miniLabel').textContent = label;
@@ -3743,7 +3859,7 @@
       if (Date.now() < next.startTs) hTip = ' · ' + next.name + ' ' + Math.max(1, Math.ceil((next.startTs - Date.now()) / 86400000)) + ' 天后';
       else hTip = ' · ' + next.name + ' 放假中';
     }
-    doc.getElementById('miniMeta').textContent = settings.workStart + ' ~ ' + settings.workEnd + hTip;
+    doc.getElementById('miniMeta').textContent = scheduleMeta(Date.now()) + hTip;
     doc.getElementById('miniWater').textContent = state.water;
     doc.getElementById('miniSit').textContent = Math.floor(sitMsOf(state) / 60000);
     doc.getElementById('miniEye').textContent = state.eyeRest;
@@ -4158,6 +4274,12 @@
 
   function inWorkWindow(now){
     if (state.clockOut) return false;
+    if (settings.flexible) {
+      if (!state.clockIn) return false;
+      var lunch = lunchRangeFor(now);
+      if (lunch && now >= lunch.start && now < lunch.end) return false;
+      return true;
+    }
     if (state.clockIn) return true;
     var start = atTime(new Date(now), settings.workStart).getTime();
     var end = atTime(new Date(now), settings.workEnd).getTime();
@@ -4217,8 +4339,9 @@
       state.waterSnoozeUntil = 0;
       state.eyeSnoozeUntil = 0;
       hideCareAlert();
-      addLog('punch', '上班打卡 ' + fmtClock(now));
-      toast('打卡成功。今天也要好好活着。', 'success');
+      var planned = settings.flexible ? flexOffWorkTs(now) : 0;
+      addLog('punch', '上班打卡 ' + fmtClock(now) + (settings.flexible ? '，预计 ' + fmtClock(planned) + ' 下班' : ''));
+      toast(settings.flexible ? '打卡成功，预计 ' + fmtClock(planned) + ' 下班。' : '打卡成功。今天也要好好活着。', 'success');
       beep();
     } else if (!state.clockOut) {
       state.clockOut = now;
@@ -4237,12 +4360,12 @@
       hideSitAlert();
       hideCareAlert();
       addLog('punch', '下班打卡 ' + fmtClock(now));
-      var end = atTime(new Date(), settings.workEnd).getTime();
-      if (now < end) {
+      var plannedEnd = settings.flexible ? flexOffWorkTs(state.clockIn) : atTime(new Date(now), settings.workEnd).getTime();
+      if (now < plannedEnd) {
         confetti();
-        toast('准点下班，身体谢谢你！', 'success');
+        toast('提前下班，身体先谢谢你。', 'success');
       } else {
-        toast('终于下班了，今天辛苦了。', 'success');
+        toast('下班打卡成功，今天辛苦了。', 'success');
       }
       beep();
     } else {
@@ -4475,8 +4598,8 @@
     } else if (!state.clockIn) {
       tips.push({ icon: 'i-flag', text: '还没打卡？先点上班打卡，让系统开始替你记账。' });
     } else {
-      var end = atTime(new Date(), settings.workEnd).getTime();
-      var left = end - Date.now();
+      var end = plannedOffWorkTs(Date.now());
+      var left = end ? end - Date.now() : 0;
       if (left > 0 && left <= 30 * 60000) {
         tips.push({ icon: 'i-clock', text: '距离下班不到 30 分钟，收尾工作，准点跑路。' });
       }
@@ -4774,7 +4897,7 @@
 
   function renderBadges(){
     var fishMs = fishMsOf(state);
-    var endTs = state.clockOut ? atTime(new Date(state.clockOut), settings.workEnd).getTime() : 0;
+    var endTs = state.clockOut ? (settings.flexible ? flexOffWorkTs(state.clockIn) : atTime(new Date(state.clockOut), settings.workEnd).getTime()) : 0;
     var list = [
       { name: '续命第一杯', desc: '喝下今天第一杯水', icon: 'i-drop', on: state.water >= 1 },
       { name: '水桶成精', desc: '喝水达到目标', icon: 'i-drop', on: state.water >= settings.waterGoal },
@@ -4822,8 +4945,7 @@
   }
 
   function applySettingsUI(){
-    $('#workStartLabel').textContent = settings.workStart;
-    $('#workEndLabel').textContent = settings.workEnd;
+    updateScheduleLabels();
     $('#sitLimitLabel').textContent = settings.sitLimit;
     document.title = baseTitle();
     updateMeetingUI();
@@ -4853,19 +4975,24 @@
 
   /* ---------------- live updates ---------------- */
   function updateHero(now){
-    var start = atTime(now, settings.workStart);
-    var end = atTime(now, settings.workEnd);
+    var flexible = !!settings.flexible;
+    var end = plannedOffWorkTs(now.getTime());
     var cd = $('#countdown');
     var big, label, status, cls;
 
     if (state.clockOut) {
-      big = fmtDur(state.clockOut - state.clockIn);
+      big = fmtDur(workedMs());
       label = '今日工时 · 已下班';
       status = '已下班，快跑，别回头';
       cls = 'done';
-    } else if (now >= end) {
+    } else if (flexible && !state.clockIn) {
+      big = fmtDur((Number(settings.workMinutes) || 480) * 60000);
+      label = '每日工作时长 · 不含午休';
+      status = '打卡后自动计算下班时间';
+      cls = 'idle';
+    } else if (end && now.getTime() >= end) {
       if (state.clockIn) {
-        big = fmtDur(now - end);
+        big = fmtDur(now.getTime() - end);
         label = '已加班 · 还没打卡下班';
         status = '无偿加班中，命是自己的';
         cls = 'danger';
@@ -4876,9 +5003,11 @@
         cls = 'idle';
       }
     } else {
-      big = fmtDur(end - now);
+      big = fmtDur(end - now.getTime());
       label = state.clockIn ? '距离下班' : '距离下班 · 还未打卡';
-      status = state.clockIn ? '搬砖中，坚持就是胜利' : '还没打卡，先来杯水压压惊';
+      status = state.clockIn
+        ? (flexible ? '弹性 · ' + fmtClock(end) + ' 下班' : '搬砖中，坚持就是胜利')
+        : '还没打卡，先来杯水压压惊';
       cls = state.clockIn ? 'live' : 'idle';
     }
 
@@ -4889,13 +5018,22 @@
     $('#heroStatusText').textContent = status;
 
     var pct;
-    if (now < start) pct = 0;
-    else if (now >= end) pct = 100;
-    else pct = (now - start) / (end - start) * 100;
+    if (flexible) {
+      if (!state.clockIn) pct = 0;
+      else if (!end || now.getTime() >= end) pct = 100;
+      else pct = (now.getTime() - state.clockIn) / Math.max(1, end - state.clockIn) * 100;
+    } else {
+      var start = atTime(now, settings.workStart);
+      var fixedEnd = atTime(now, settings.workEnd);
+      if (now < start) pct = 0;
+      else if (now >= fixedEnd) pct = 100;
+      else pct = (now - start) / (fixedEnd - start) * 100;
+    }
     pct = Math.max(0, Math.min(100, pct));
     $('#heroPct').textContent = Math.round(pct) + '%';
     $('#heroArc').style.strokeDashoffset = 326.73 * (1 - pct / 100);
 
+    updateScheduleLabels();
     $('#workedMeta').innerHTML = '<b>工时</b> ' + (state.clockIn ? fmtHM(workedMs()) : '0h00m');
   }
 
@@ -4967,10 +5105,37 @@
     if (m) m.hidden = true;
   }
 
+  function updateSettingsLunchInputs(){
+    var enabled = $('#setLunchEnabled').checked;
+    $('#setLunchStart').disabled = !enabled;
+    $('#setLunchEnd').disabled = !enabled;
+  }
+
+  function setSettingsMode(mode){
+    var flexible = mode === 'flexible';
+    $('#fixedTimeRow').hidden = flexible;
+    $('#flexWorkField').hidden = !flexible;
+    $('#flexLunchRow').hidden = !flexible;
+    $('#flexLunchSwitch').hidden = !flexible;
+    $('#flexHint').hidden = !flexible;
+    var buttons = $('#setWorkMode').querySelectorAll('button');
+    for (var i = 0; i < buttons.length; i++) {
+      buttons[i].classList.toggle('active', buttons[i].getAttribute('data-mode') === mode);
+    }
+    updateSettingsLunchInputs();
+  }
+
   function openSettings(){
     $('#setName').value = settings.name;
     $('#setStart').value = settings.workStart;
     $('#setEnd').value = settings.workEnd;
+    var workMinutes = Math.min(16 * 60, Math.max(30, Number(settings.workMinutes) || 480));
+    $('#setWorkHours').value = Math.floor(workMinutes / 60);
+    $('#setWorkMins').value = workMinutes % 60;
+    $('#setLunchStart').value = settings.lunchStart || '12:00';
+    $('#setLunchEnd').value = settings.lunchEnd || '13:00';
+    $('#setLunchEnabled').checked = !!settings.lunchEnabled;
+    setSettingsMode(settings.flexible ? 'flexible' : 'fixed');
     $('#setWater').value = settings.waterGoal;
     $('#setSit').value = settings.sitLimit;
     $('#setWaterRemind').value = settings.waterRemindMin;
@@ -4985,16 +5150,50 @@
   }
 
   function saveSettings(){
+    var modeBtn = $('#setWorkMode').querySelector('button.active');
+    var flexible = !!(modeBtn && modeBtn.getAttribute('data-mode') === 'flexible');
     var start = $('#setStart').value || settings.workStart;
     var end = $('#setEnd').value || settings.workEnd;
-    if (start >= end) {
+    var workMinutes = Number(settings.workMinutes) || 480;
+    var lunchEnabled = !!settings.lunchEnabled;
+    var lunchStart = settings.lunchStart || '12:00';
+    var lunchEnd = settings.lunchEnd || '13:00';
+    if (flexible) {
+      var hours = parseInt($('#setWorkHours').value, 10);
+      var mins = parseInt($('#setWorkMins').value, 10);
+      if (!isFinite(hours)) hours = 8;
+      if (!isFinite(mins)) mins = 0;
+      workMinutes = Math.max(0, hours) * 60 + Math.min(59, Math.max(0, mins));
+      if (workMinutes < 30) {
+        toast('每日工作时长至少 30 分钟。', 'warn');
+        return;
+      }
+      if (workMinutes > 16 * 60) {
+        toast('每日工作时长最多 16 小时，别把命搭进去。', 'warn');
+        return;
+      }
+      lunchEnabled = $('#setLunchEnabled').checked;
+      lunchStart = $('#setLunchStart').value || '12:00';
+      lunchEnd = $('#setLunchEnd').value || '13:00';
+      if (lunchEnabled && lunchStart >= lunchEnd) {
+        toast('午休结束时间要晚于开始时间。', 'warn');
+        return;
+      }
+    } else if (start >= end) {
       toast('下班时间要晚于上班时间，不然就是倒贴上班。', 'warn');
       return;
     }
     var name = ($('#setName').value || '').trim().slice(0, 12) || '牛马一号';
     settings.name = name;
-    settings.workStart = start;
-    settings.workEnd = end;
+    if (!flexible) {
+      settings.workStart = start;
+      settings.workEnd = end;
+    }
+    settings.flexible = flexible;
+    settings.workMinutes = workMinutes;
+    settings.lunchEnabled = lunchEnabled;
+    settings.lunchStart = lunchStart;
+    settings.lunchEnd = lunchEnd;
     settings.waterGoal = Math.min(20, Math.max(1, parseInt($('#setWater').value, 10) || 8));
     settings.sitLimit = Math.min(180, Math.max(10, parseInt($('#setSit').value, 10) || 45));
     settings.waterRemindMin = Math.min(240, Math.max(15, parseInt($('#setWaterRemind').value, 10) || 60));
@@ -5025,7 +5224,7 @@
     tick();
     renderNotifyStatus();
     closeModal($('#settingsModal'));
-    toast(settings.meetingMode ? '设置已保存，开会模式开启中。' : '设置已保存，继续好好活着。', 'success');
+    toast(settings.meetingMode ? '设置已保存，开会模式开启中。' : (flexible ? '设置已保存，弹性工时已开启。' : '设置已保存，继续好好活着。'), 'success');
   }
 
   function resetDay(){
@@ -5105,6 +5304,11 @@
     $('#coffeeMinus').addEventListener('click', function(){ coffee(-1); });
     $('#fishBtn').addEventListener('click', toggleFish);
     $('#settingsBtn').addEventListener('click', openSettings);
+    $('#setWorkMode').addEventListener('click', function(e){
+      var btn = e.target && e.target.closest ? e.target.closest('button[data-mode]') : null;
+      if (btn) setSettingsMode(btn.getAttribute('data-mode'));
+    });
+    $('#setLunchEnabled').addEventListener('change', updateSettingsLunchInputs);
     $('#meetingBtn').addEventListener('click', function(){ toggleMeetingMode(); });
     $('#meetingEnd').addEventListener('click', function(){ toggleMeetingMode(false); });
     $('#saveSettings').addEventListener('click', saveSettings);
