@@ -2911,8 +2911,25 @@
       workEnd: settings.workEnd,
       meetingMode: !!settings.meetingMode,
       meta: settings.workStart + ' ~ ' + settings.workEnd + hTip,
+      alert: miniAlertState(),
       updatedAt: now
     };
+  }
+
+  function handleDesktopAction(action){
+    if (!action) return;
+    var careMatch = !$('#careAlert').hidden;
+    if (action === 'sit_done') {
+      if (!$('#sitAlert').hidden) alertStandNow();
+    } else if (action === 'sit_snooze') {
+      if (!$('#sitAlert').hidden) snoozeSitAlert();
+    } else if (action === 'water_done' || action === 'eye_done') {
+      var type = action === 'water_done' ? 'water' : 'eye';
+      if (careMatch && careType === type) carePrimaryAction();
+    } else if (action === 'water_snooze' || action === 'eye_snooze') {
+      var snoozeType = action === 'water_snooze' ? 'water' : 'eye';
+      if (careMatch && careType === snoozeType) snoozeCareAlert();
+    }
   }
 
   function desktopSyncFailed(){
@@ -2942,7 +2959,16 @@
         headers: { 'Content-Type': 'text/plain' },
         body: JSON.stringify(desktopPayload()),
         signal: ctrl ? ctrl.signal : undefined
-      }).then(function(){ done(); }, function(){ desktopSyncFailed(); done(); });
+      }).then(function(r){
+        if (!r.ok) throw new Error('bad status');
+        return r.text();
+      }).then(function(text){
+        try {
+          var res = text ? JSON.parse(text) : null;
+          if (res && res.action) handleDesktopAction(res.action);
+        } catch (err) { /* ignore malformed reply */ }
+        done();
+      }, function(){ desktopSyncFailed(); done(); });
     } catch (err) {
       desktopSyncFailed();
       done();
