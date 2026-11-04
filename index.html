@@ -346,9 +346,11 @@
   .vent-actions{display:inline-flex;gap:6px;flex-wrap:wrap}
   .vent-actions .btn{font-size:11px;padding:7px 10px;border-radius:10px}
   .vent-sub{font-size:11px;color:var(--muted);margin:-10px 0 4px;line-height:1.6}
+  .vent-layout{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:16px;align-items:stretch;margin-top:8px}
+  .vent-main{min-width:0;display:flex;flex-direction:column}
   .vent-chat{
     height:300px;overflow-y:auto;background:#f7f3ec;border:1px solid var(--line);border-radius:16px;
-    padding:14px;display:flex;flex-direction:column;margin-top:8px;scroll-behavior:smooth;
+    padding:14px;display:flex;flex-direction:column;margin-top:0;scroll-behavior:smooth;
   }
   .vent-msg{display:flex;gap:8px;margin:0 0 11px;max-width:88%;animation:ventIn .22s ease}
   .vent-msg.user{flex-direction:row-reverse;margin-left:auto;max-width:80%}
@@ -388,21 +390,29 @@
   .vent-input button:active{transform:scale(.97)}
   .vent-chat::-webkit-scrollbar{width:6px}
   .vent-chat::-webkit-scrollbar-thumb{background:#ded5c7;border-radius:999px}
-  .vent-summary{
-    background:#fff8f1;border:1px solid #ffdcbe;border-radius:14px;padding:12px 14px;
-    margin:10px 0;font-size:12px;line-height:1.7;color:#6b4a31;
+  .vent-cloud-card{
+    display:flex;flex-direction:column;min-height:300px;padding:12px 13px 11px;
+    border:1px solid #efe2d1;border-radius:16px;
+    background:
+      radial-gradient(circle at 18% 12%,rgba(255,122,60,.08),transparent 42%),
+      radial-gradient(circle at 86% 88%,rgba(47,107,255,.06),transparent 46%),
+      linear-gradient(165deg,#fffaf4,#f8f0e4);
   }
-  .vent-summary[hidden]{display:none}
-  .vent-summary-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:8px}
-  .vent-summary-head b{font-size:13px;color:#b45309}
-  .vent-summary-head span{font-size:10px;color:#a98b70}
-  .vent-topic{display:flex;align-items:center;gap:8px;margin-bottom:6px}
-  .vent-topic > span{flex:0 0 74px;font-weight:700;font-size:11.5px}
-  .vent-topic-track{flex:1;height:7px;border-radius:999px;background:#f2e4d3;overflow:hidden}
-  .vent-topic-track i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#ffb373,#ff5a1f)}
-  .vent-topic em{flex:0 0 86px;text-align:right;font-style:normal;font-size:10.5px;color:#8a6a4e;font-variant-numeric:tabular-nums}
-  .vent-summary-note{margin-top:9px;padding-top:9px;border-top:1px dashed #f2dcc0;font-size:11.5px;color:#8a6a4e}
-  .vent-summary-note b{color:#b45309}
+  .vent-cloud-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;padding:0 2px}
+  .vent-cloud-head b{font-size:12.5px;color:#7e4a2a;letter-spacing:-.01em}
+  .vent-cloud-head span{font-size:9.5px;color:#b09274}
+  .vent-cloud{position:relative;flex:1;min-height:220px;margin-top:6px;overflow:hidden}
+  .vent-cloud-word{
+    position:absolute;white-space:nowrap;line-height:1;font-weight:800;letter-spacing:-.03em;
+    opacity:0;transition:opacity .35s ease;cursor:default;user-select:none;
+  }
+  .vent-cloud-word.show{opacity:1}
+  .vent-cloud-note{font-size:9.5px;line-height:1.5;color:#a98b70;padding:6px 2px 0}
+  @media (max-width:780px){
+    .vent-layout{grid-template-columns:1fr}
+    .vent-cloud-card{min-height:250px}
+    .vent-cloud{min-height:200px}
+  }
   @media (max-width:640px){
     .vent-actions{width:100%}
     .vent-actions .btn{flex:1;justify-content:center}
@@ -1475,28 +1485,35 @@
         <button class="btn soft small" type="button" data-quick="water">来杯水</button>
         <button class="btn soft small" type="button" data-quick="stand">起身活动</button>
         <button class="btn soft small" type="button" data-quick="fish">摸鱼 5 分钟</button>
-        <button class="btn soft small" type="button" id="ventSummaryBtn">吐槽总结</button>
       </div>
     </div>
     <p class="vent-sub">把负能量倒给我，我陪你一起骂；骂完记得喝口水、站起来，别便宜了班。</p>
-    <div class="vent-summary" id="ventSummary" hidden></div>
-    <div class="vent-chat" id="ventChat">
-      <div class="vent-msg buddy">
-        <span class="vent-avatar">搭</span>
-        <div class="vent-bubble">来了来了。老板、同事、KPI、甲方，还是今天单纯不想上班？想骂哪件，我都陪你骂。</div>
+    <div class="vent-layout">
+      <div class="vent-main">
+        <div class="vent-chat" id="ventChat">
+          <div class="vent-msg buddy">
+            <span class="vent-avatar">搭</span>
+            <div class="vent-bubble">来了来了。老板、同事、KPI、甲方，还是今天单纯不想上班？想骂哪件，我都陪你骂。</div>
+          </div>
+        </div>
+        <div class="vent-chips" id="ventChips">
+          <button type="button" data-q="老板又画饼">老板又画饼</button>
+          <button type="button" data-q="又要加班到深夜">又要加班</button>
+          <button type="button" data-q="KPI 定的什么鬼">KPI 什么鬼</button>
+          <button type="button" data-q="同事把锅甩给我">同事甩锅</button>
+          <button type="button" data-q="甲方又改需求">甲方改需求</button>
+          <button type="button" data-q="今天好累不想干了">今天好累</button>
+        </div>
+        <div class="vent-input">
+          <input id="ventInput" type="text" maxlength="100" placeholder="尽情吐槽，说完心情能好点……" autocomplete="off">
+          <button id="ventSend" type="button">开喷</button>
+        </div>
       </div>
-    </div>
-    <div class="vent-chips" id="ventChips">
-      <button type="button" data-q="老板又画饼">老板又画饼</button>
-      <button type="button" data-q="又要加班到深夜">又要加班</button>
-      <button type="button" data-q="KPI 定的什么鬼">KPI 什么鬼</button>
-      <button type="button" data-q="同事把锅甩给我">同事甩锅</button>
-      <button type="button" data-q="甲方又改需求">甲方改需求</button>
-      <button type="button" data-q="今天好累不想干了">今天好累</button>
-    </div>
-    <div class="vent-input">
-      <input id="ventInput" type="text" maxlength="100" placeholder="尽情吐槽，说完心情能好点……" autocomplete="off">
-      <button id="ventSend" type="button">开喷</button>
+      <aside class="vent-cloud-card">
+        <div class="vent-cloud-head"><b>吐槽词云</b><span id="ventCloudMeta">先来两句</span></div>
+        <div class="vent-cloud" id="ventCloud"></div>
+        <div class="vent-cloud-note" id="ventCloudNote">词越大，说明这个词越常出现在你的吐槽里。</div>
+      </aside>
     </div>
   </section>
 
@@ -2524,99 +2541,130 @@
   function renderVent(){
     var tag = $('#ventTag');
     if (tag) tag.textContent = '已吐槽 ' + (state.ventCount || 0) + ' 次';
+    renderVentCloud();
   }
 
-  /* ---------------- 吐槽总结 ---------------- */
-  var VENT_TOPIC_LABELS = {
-    boss: '老板 / 领导',
-    overtime: '加班',
-    kpi: 'KPI / 绩效',
-    salary: '工资 / 钱',
-    colleague: '同事 / 背锅',
-    client: '甲方 / 需求',
-    meeting: '开会',
-    quit: '离职',
-    tired: '累 / 身体',
-    stress: '压力 / 情绪'
-  };
+  /* ---------------- 吐槽词云 ---------------- */
+  var VENT_CLOUD_WORDS = [
+    { word: '老板', aliases: ['老板', '领导', '上级', '主管', '经理', 'pua'] },
+    { word: '画饼', aliases: ['画饼', '画大饼', '饼'] },
+    { word: '加班', aliases: ['加班', '熬夜', '996', '通宵', '晚点走', '没下班'] },
+    { word: 'KPI', aliases: ['kpi', '绩效', '指标', '考核'] },
+    { word: '工资', aliases: ['工资', '薪资', '涨薪', '年终奖', '降薪', '钱'] },
+    { word: '同事', aliases: ['同事'] },
+    { word: '甩锅', aliases: ['甩锅', '推锅', '背锅', '甩给', '推给', '坑我'] },
+    { word: '甲方', aliases: ['甲方', '客户', '需求方'] },
+    { word: '改需求', aliases: ['改需求', '改方案', '又改', '改稿', '需求'] },
+    { word: '开会', aliases: ['开会', '会议', '例会', '周会', '晨会', '复盘'] },
+    { word: '离职', aliases: ['离职', '辞职', '跳槽', '裸辞', '不干了'] },
+    { word: '累', aliases: ['好累', '累', '疲惫', '困', '没力气', '绷不住', '身体'] },
+    { word: '压力', aliases: ['压力', '焦虑', '烦', '崩溃', '想哭', '睡不着', 'emo'] },
+    { word: '摸鱼', aliases: ['摸鱼', '划水', '带薪'] },
+    { word: '下班', aliases: ['下班', '准点走', '回家'] },
+    { word: '周末', aliases: ['周末', '双休'] },
+    { word: '假期', aliases: ['假期', '放假', '休假'] }
+  ];
+  var VENT_CLOUD_COLORS = ['#ff5a1f', '#b45309', '#2f6bff', '#0fa968', '#8b5cf6', '#db2777', '#c2410c', '#5b6674'];
+  var ventCloudResizeTimer = null;
 
-  function buildVentSummary(){
+  function ventCloudItems(){
     var recent = ventHistory.slice(-100);
-    if (!recent.length) {
-      return '<div class="vent-summary-note">还没有吐槽记录，先吐两句，我就能帮你总结人生了。</div>';
-    }
     var counts = {};
-    var unmatched = 0;
     recent.forEach(function(item){
       var lower = String(item.text || '').toLowerCase();
-      var matched = false;
-      for (var i = 0; i < VENT_CATS.length; i++) {
-        var cat = VENT_CATS[i];
-        for (var j = 0; j < cat.keys.length; j++) {
-          if (lower.indexOf(cat.keys[j]) !== -1) {
-            counts[cat.name] = (counts[cat.name] || 0) + 1;
-            matched = true;
-            break;
-          }
-        }
-        if (matched) break;
-      }
-      if (!matched) unmatched++;
+      VENT_CLOUD_WORDS.forEach(function(entry){
+        var pattern = entry.aliases.slice().sort(function(a, b){ return b.length - a.length; })
+          .map(function(alias){ return alias.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); })
+          .join('|');
+        var matched = lower.match(new RegExp(pattern, 'g'));
+        var count = matched ? matched.length : 0;
+        if (count) counts[entry.word] = (counts[entry.word] || 0) + count;
+      });
     });
-    var rows = [];
-    Object.keys(counts).forEach(function(k){ rows.push({ name: k, count: counts[k] }); });
-    rows.sort(function(a, b){ return b.count - a.count; });
-    var max = rows.length ? rows[0].count : 1;
-    var n = recent.length;
-
-    var freq = {};
-    var topWord = null;
-    var topCount = 0;
-    recent.forEach(function(item){
-      var t = String(item.text || '').trim();
-      freq[t] = (freq[t] || 0) + 1;
-      if (freq[t] > topCount) { topCount = freq[t]; topWord = t; }
+    var items = [];
+    Object.keys(counts).forEach(function(word){
+      items.push({ word: word, count: counts[word] });
     });
-
-    var html = '<div class="vent-summary-head"><b>你的吐槽画像</b><span>最近 ' + n + ' 句</span></div>';
-    rows.forEach(function(row){
-      var pct = Math.round(row.count / n * 100);
-      html += '<div class="vent-topic"><span>' + (VENT_TOPIC_LABELS[row.name] || row.name) + '</span>' +
-        '<div class="vent-topic-track"><i style="width:' + Math.round(row.count / max * 100) + '%"></i></div>' +
-        '<em>' + row.count + ' 次 · ' + pct + '%</em></div>';
-    });
-    if (unmatched) {
-      html += '<div class="vent-topic"><span>其他</span><div class="vent-topic-track"><i style="width:' + Math.round(unmatched / max * 100) + '%"></i></div><em>' + unmatched + ' 次 · ' + Math.round(unmatched / n * 100) + '%</em></div>';
-    }
-    var note;
-    if (rows.length) {
-      var topName = VENT_TOPIC_LABELS[rows[0].name] || rows[0].name;
-      note = '压力主要来自：<b>' + topName + '</b>（' + rows[0].count + ' 次）。';
-    } else {
-      note = '最近的吐槽比较分散，看来是全面开花。';
-    }
-    if (topCount >= 2 && topWord) {
-      note += '<br>最常说的那句：「' + weatherEsc(topWord) + '」说了 ' + topCount + ' 次。';
-    } else {
-      note += '<br>排在前面的心愿：少加点班、早点下班、正常放假。';
-    }
-    note += '<br>吐完了记得喝口水、起身活动两分钟，别让这些气住进身体里。';
-    html += '<div class="vent-summary-note">' + note + '</div>';
-    return html;
+    items.sort(function(a, b){ return b.count - a.count || a.word.length - b.word.length; });
+    return { items: items.slice(0, 20), total: recent.length };
   }
 
-  function toggleVentSummary(){
-    var box = $('#ventSummary');
-    var btn = $('#ventSummaryBtn');
-    if (!box) return;
-    if (box.hidden) {
-      box.innerHTML = buildVentSummary();
-      box.hidden = false;
-      if (btn) btn.textContent = '收起总结';
-    } else {
-      box.hidden = true;
-      if (btn) btn.textContent = '吐槽总结';
+  function renderVentCloud(){
+    var cloud = $('#ventCloud');
+    var meta = $('#ventCloudMeta');
+    var note = $('#ventCloudNote');
+    if (!cloud) return;
+    var data = ventCloudItems();
+    var items = data.items.slice();
+    var fallback = false;
+    if (!items.length) {
+      fallback = true;
+      items = ['老板', '加班', 'KPI', '工资', '需求', '开会', '累', '压力', '摸鱼', '下班', '画饼', '同事', '甲方', '周末'].map(function(word, i){
+        return { word: word, count: 1 + (i % 3) };
+      });
     }
+    if (meta) meta.textContent = data.total ? '最近 ' + data.total + ' 句' : '先来两句';
+    if (note) {
+      note.textContent = fallback
+        ? '先吐两句，词云就长出来了。词越大，代表你越常说。'
+        : '词越大，说明这个词越常出现；当前最多：' + items[0].word + ' ×' + items[0].count + '。';
+    }
+    cloud.innerHTML = '';
+    var W = cloud.clientWidth;
+    var H = cloud.clientHeight;
+    if (W < 40 || H < 40) return;
+    var maxCount = items[0] ? items[0].count : 1;
+    var placed = [];
+    function overlaps(r, gap){
+      for (var i = 0; i < placed.length; i++) {
+        var p = placed[i];
+        if (r.x < p.x + p.w + gap && r.x + r.w + gap > p.x && r.y < p.y + p.h + gap && r.y + r.h + gap > p.y) return true;
+      }
+      return false;
+    }
+    items.forEach(function(item, idx){
+      var el = document.createElement('span');
+      el.className = 'vent-cloud-word';
+      el.textContent = item.word;
+      var ratio = maxCount > 1 ? item.count / maxCount : 1;
+      var size = fallback ? 14 + ((idx * 5) % 18) : 12 + Math.round(ratio * 23) + (idx < 2 ? 3 : 0);
+      var rot = fallback ? (idx % 4 === 0 ? -6 : 0) : (idx % 5 === 0 ? -7 : idx % 7 === 0 ? 6 : 0);
+      el.style.fontSize = size + 'px';
+      el.style.color = fallback ? (idx % 2 ? '#b6a18c' : '#c8a98d') : VENT_CLOUD_COLORS[idx % VENT_CLOUD_COLORS.length];
+      el.style.transform = 'rotate(' + rot + 'deg)';
+      el.title = item.word + ' · ' + item.count + ' 次';
+      cloud.appendChild(el);
+      var rect = el.getBoundingClientRect();
+      var w = rect.width;
+      var h = rect.height;
+      var angle = 0;
+      var radius = 0;
+      var spot = null;
+      for (var t = 0; t < 700; t++) {
+        var x = W / 2 + Math.cos(angle) * radius - w / 2;
+        var y = H / 2 + Math.sin(angle) * radius - h / 2;
+        var r = { x: x, y: y, w: w, h: h };
+        if (x >= 3 && y >= 2 && x + w <= W - 3 && y + h <= H - 2 && !overlaps(r, 4)) {
+          spot = r;
+          break;
+        }
+        angle += 0.55;
+        radius += 1.8;
+      }
+      if (!spot) {
+        el.parentNode.removeChild(el);
+        return;
+      }
+      el.style.left = spot.x + 'px';
+      el.style.top = spot.y + 'px';
+      el.classList.add('show');
+      placed.push(spot);
+    });
+  }
+
+  function scheduleVentCloudRender(){
+    if (ventCloudResizeTimer) clearTimeout(ventCloudResizeTimer);
+    ventCloudResizeTimer = setTimeout(renderVentCloud, 160);
   }
 
   /* ---------------- 吃饭搭子 ---------------- */
@@ -5400,7 +5448,7 @@
     $('#careSecondary').addEventListener('click', snoozeCareAlert);
     $('#ventSend').addEventListener('click', sendVent);
     $('#ventInput').addEventListener('keydown', function(e){ if (e.key === 'Enter') sendVent(); });
-    $('#ventSummaryBtn').addEventListener('click', toggleVentSummary);
+    window.addEventListener('resize', scheduleVentCloudRender);
     $$('#ventChips button').forEach(function(b){
       b.addEventListener('click', function(){
         $('#ventInput').value = b.getAttribute('data-q');
