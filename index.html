@@ -601,10 +601,14 @@
     display:inline-flex;align-items:center;gap:5px;background:#fff;border:1px solid var(--line);
     border-radius:999px;padding:5px 9px;font-size:10.5px;color:#6b645c;
   }
+  .holiday-chip{cursor:pointer;user-select:none}
   .holiday-chip:hover{border-color:#ffc4a6}
   .holiday-chip b{font-weight:800;color:var(--ink)}
   .holiday-chip em{font-style:normal;color:var(--orange-deep);font-weight:600}
   .holiday-chip.custom{background:var(--orange-soft);border-color:#ffc4a6}
+  .holiday-chip.selected{background:#fff7f0;border-color:var(--orange);box-shadow:0 0 0 2px rgba(255,90,31,.1)}
+  .holiday-chip.selected b{color:var(--orange-deep)}
+  .holiday-chip:focus-visible{outline:2px solid rgba(255,90,31,.35);outline-offset:2px}
   .holiday-chip .holiday-del{
     border:none;background:transparent;color:#a89f93;cursor:pointer;padding:0 2px;font-size:12px;line-height:1;
   }
@@ -2847,7 +2851,12 @@
   var calWindowYear = calYear;
   var calWindowMonth = calMonth;
   var calMode = 'year';
+  var selectedHolidayKey = '';
   var CAL_HEADERS = ['日', '一', '二', '三', '四', '五', '六'];
+
+  function holidayKey(h){
+    return h.start + '|' + h.end + '|' + h.name;
+  }
 
   function holidayInfoForDate(d){
     var ts = d.getTime();
@@ -3127,7 +3136,21 @@
     var stayEl = $('#holidayStay');
     var stayText = $('#holidayStayText');
     if (!count) return;
-    var next = items && items[0];
+    var selectionCleared = false;
+    var next = null;
+    if (selectedHolidayKey) {
+      for (var si = 0; si < items.length; si++) {
+        if (holidayKey(items[si]) === selectedHolidayKey) {
+          next = items[si];
+          break;
+        }
+      }
+      if (!next) {
+        selectedHolidayKey = '';
+        selectionCleared = true;
+      }
+    }
+    if (!next) next = items[0];
     if (!next) {
       label.textContent = '距离放假还有';
       count.textContent = '--';
@@ -3168,18 +3191,20 @@
     var quip = holidayQuipFor(d, now >= next.startTs);
     if (quipEl) quipEl.textContent = quip;
     if (now >= next.startTs) {
-      label.textContent = '正在放假 · 还能休息';
+      label.textContent = next.name + '假期中 · 还能休息';
       count.textContent = fmt;
       if (tag) { tag.textContent = '放假中'; tag.className = 'tag green'; }
     } else {
-      label.textContent = '距离放假还有';
+      label.textContent = '距离' + next.name + '还有';
       count.textContent = fmt;
+      var daysAway = Math.ceil((next.startTs - now) / 86400000);
       if (tag) {
-        tag.textContent = d > 0 ? d + ' 天后' : '就快啦';
-        tag.className = d <= 3 ? 'tag warn' : 'tag';
+        tag.textContent = daysAway > 0 ? daysAway + ' 天后' : '就快啦';
+        tag.className = daysAway <= 3 ? 'tag warn' : 'tag';
       }
     }
     sub.textContent = next.name + ' · ' + next.start + ' ~ ' + next.end + (next.custom ? '（自定义）' : '');
+    if (selectionCleared) renderHolidayList();
   }
 
   var holidayQuipCache = { key: '', text: '' };
@@ -3230,9 +3255,22 @@
       wrap.appendChild(empty);
       return;
     }
+    var activeKey = '';
+    if (selectedHolidayKey) {
+      for (var i = 0; i < items.length; i++) {
+        if (holidayKey(items[i]) === selectedHolidayKey) { activeKey = selectedHolidayKey; break; }
+      }
+    }
+    if (!activeKey && items[0]) activeKey = holidayKey(items[0]);
     items.slice(0, 6).forEach(function(h){
+      var key = holidayKey(h);
       var chip = document.createElement('span');
-      chip.className = 'holiday-chip' + (h.custom ? ' custom' : '');
+      chip.className = 'holiday-chip' + (h.custom ? ' custom' : '') + (key === activeKey ? ' selected' : '');
+      chip.setAttribute('role', 'button');
+      chip.setAttribute('tabindex', '0');
+      chip.setAttribute('data-key', key);
+      chip.setAttribute('aria-pressed', key === activeKey ? 'true' : 'false');
+      chip.title = '查看 ' + h.name + ' 倒计时';
       var b = document.createElement('b');
       b.textContent = h.name;
       var days = Math.ceil((h.startTs - now) / 86400000);
@@ -3240,19 +3278,31 @@
       em.textContent = now >= h.startTs ? '放假中' : '还有 ' + Math.max(0, days) + ' 天';
       chip.appendChild(b);
       chip.appendChild(em);
+      chip.addEventListener('click', function(){ selectHoliday(key); });
+      chip.addEventListener('keydown', function(e){
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          selectHoliday(key);
+        }
+      });
       if (h.custom) {
         var x = document.createElement('button');
         x.type = 'button';
         x.className = 'holiday-del';
         x.setAttribute('aria-label', '删除该自定义假期');
         x.textContent = '×';
-        (function(name, start, end){
-          x.addEventListener('click', function(){ removeCustomHoliday(name, start, end); });
-        })(h.name, h.start, h.end);
+        x.addEventListener('click', function(e){ e.stopPropagation(); removeCustomHoliday(h.name, h.start, h.end); });
+        x.addEventListener('keydown', function(e){ e.stopPropagation(); });
         chip.appendChild(x);
       }
       wrap.appendChild(chip);
     });
+  }
+
+  function selectHoliday(key){
+    selectedHolidayKey = key;
+    updateHoliday(Date.now());
+    renderHolidayList();
   }
 
   function addCustomHoliday(){
