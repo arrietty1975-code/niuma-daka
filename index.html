@@ -2981,7 +2981,7 @@
       meta: settings.workStart + ' ~ ' + settings.workEnd + hTip,
       alert: miniAlertState(),
       sourceId: DESKTOP_SOURCE_ID,
-      focused: !document.hidden,
+      focused: document.hasFocus() && !document.hidden,
       updatedAt: now
     };
   }
@@ -5016,6 +5016,14 @@
       if (!settings.desktopSync) return;
       if (desktopSyncConnected) pushDesktopState();
       else if (!document.hidden) probeDesktopSync();
+    });
+    window.addEventListener('focus', function(){
+      if (!settings.desktopSync) return;
+      if (desktopSyncConnected) pushDesktopState();
+      else if (!document.hidden) probeDesktopSync();
+    });
+    window.addEventListener('blur', function(){
+      if (settings.desktopSync && desktopSyncConnected) pushDesktopState();
     });
 
     if (settings.city) {
