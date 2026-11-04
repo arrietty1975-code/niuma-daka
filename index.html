@@ -1512,6 +1512,8 @@
     <p class="field-hint" id="notifyStatus"></p>
     <label class="switch-row"><span>开会模式（暂停所有提醒）</span><input type="checkbox" id="setMeeting"></label>
     <label class="switch-row"><span>提示音</span><input type="checkbox" id="setSound"></label>
+    <label class="switch-row"><span>桌面透明小窗同步（本机）</span><input type="checkbox" id="setDesktopSync"></label>
+    <p class="field-hint">需要先运行「牛马小窗」桌面 App。开启后每 2 秒把倒计时和统计同步到本机 127.0.0.1，不会上传服务器。</p>
     <div class="modal-foot">
       <button class="btn danger-ghost small" id="resetDay" type="button">重置今天</button>
       <div class="spacer"></div>
@@ -1608,7 +1610,8 @@
     notify: false,
     meetingMode: false,
     city: '',
-    sound: true
+    sound: true,
+    desktopSync: true
   };
 
   var settings = Object.assign({}, DEFAULT_SETTINGS);
@@ -1818,6 +1821,7 @@
     settings.meetingMode = !!settings.meetingMode;
     settings.notify = !!settings.notify;
     settings.sound = !!settings.sound;
+    settings.desktopSync = !!settings.desktopSync;
     if (!state) state = newDay();
     state.exercises = Array.isArray(state.exercises) ? state.exercises : [];
     state.restDay = !!state.restDay;
@@ -2834,6 +2838,100 @@
     });
     items.sort(function(a, b){ return a.startTs - b.startTs; });
     return items;
+  }
+
+  /* 桌面透明小窗：只在本机 127.0.0.1 内同步，不经过服务器 */
+  var DESKTOP_SYNC_URL = 'http://127.0.0.1:47821';
+  var desktopSyncTimer = null;
+  var desktopSyncProbeTimer = null;
+  var desktopSyncBusy = false;
+  var desktopSyncConnected = false;
+
+  function desktopPayload(){
+    var now = Date.now();
+    var next = nextHolidayInfo(now)[0];
+    var hTip = '';
+    if (next) {
+      if (now < next.startTs) hTip = ' · ' + next.name + ' ' + Math.max(1, Math.ceil((next.startTs - now) / 86400000)) + ' 天后';
+      else hTip = ' · ' + next.name + ' 放假中';
+    }
+    return {
+      name: settings.name,
+      clockIn: state.clockIn || null,
+      clockOut: state.clockOut || null,
+      water: state.water || 0,
+      sitMs: sitMsOf(state, now),
+      eyeRest: state.eyeRest || 0,
+      workStart: settings.workStart,
+      workEnd: settings.workEnd,
+      meetingMode: !!settings.meetingMode,
+      meta: settings.workStart + ' ~ ' + settings.workEnd + hTip,
+      updatedAt: now
+    };
+  }
+
+  function desktopSyncFailed(){
+    desktopSyncConnected = false;
+    if (desktopSyncTimer) { clearInterval(desktopSyncTimer); desktopSyncTimer = null; }
+    scheduleDesktopProbe(3000);
+  }
+
+  function pushDesktopState(){
+    if (!desktopSyncConnected || desktopSyncBusy) return;
+    desktopSyncBusy = true;
+    var ctrl = null;
+    var timer = null;
+    function done(){
+      if (timer) { clearTimeout(timer); timer = null; }
+      desktopSyncBusy = false;
+    }
+    try {
+      if ('AbortController' in window) {
+        ctrl = new AbortController();
+        timer = setTimeout(function(){ try { ctrl.abort(); } catch (e) { /* ignore */ } }, 1500);
+      }
+      fetch(DESKTOP_SYNC_URL + '/state', {
+        method: 'POST',
+        mode: 'cors',
+        cache: 'no-store',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify(desktopPayload()),
+        signal: ctrl ? ctrl.signal : undefined
+      }).then(function(){ done(); }, function(){ desktopSyncFailed(); done(); });
+    } catch (err) {
+      desktopSyncFailed();
+      done();
+    }
+  }
+
+  function scheduleDesktopProbe(delay){
+    if (!settings.desktopSync) return;
+    if (desktopSyncProbeTimer) clearTimeout(desktopSyncProbeTimer);
+    desktopSyncProbeTimer = setTimeout(probeDesktopSync, delay);
+  }
+
+  function probeDesktopSync(){
+    if (!settings.desktopSync || desktopSyncConnected) return;
+    fetch(DESKTOP_SYNC_URL + '/ping', { mode: 'cors', cache: 'no-store' })
+      .then(function(r){
+        if (!r.ok || !settings.desktopSync) throw new Error('bad status');
+        desktopSyncConnected = true;
+        pushDesktopState();
+        if (desktopSyncTimer) clearInterval(desktopSyncTimer);
+        desktopSyncTimer = setInterval(pushDesktopState, 2000);
+      })
+      .catch(function(){
+        desktopSyncConnected = false;
+        scheduleDesktopProbe(15000);
+      });
+  }
+
+  function startDesktopSync(){
+    if (desktopSyncTimer) { clearInterval(desktopSyncTimer); desktopSyncTimer = null; }
+    if (desktopSyncProbeTimer) { clearTimeout(desktopSyncProbeTimer); desktopSyncProbeTimer = null; }
+    desktopSyncBusy = false;
+    desktopSyncConnected = false;
+    if (settings.desktopSync) probeDesktopSync();
   }
 
   function updateHoliday(now){
@@ -4453,6 +4551,7 @@
     $('#setNotify').checked = !!settings.notify;
     $('#setMeeting').checked = !!settings.meetingMode;
     $('#setSound').checked = !!settings.sound;
+    $('#setDesktopSync').checked = !!settings.desktopSync;
     renderNotifyStatus();
     openModal('settingsModal');
   }
@@ -4477,6 +4576,7 @@
     settings.notify = wantNotify;
     settings.meetingMode = $('#setMeeting').checked;
     settings.sound = $('#setSound').checked;
+    settings.desktopSync = $('#setDesktopSync').checked;
     if (settings.meetingMode && !wasMeeting) {
       hideSitAlert();
       hideCareAlert();
@@ -4491,6 +4591,7 @@
     }
     save();
     applySettingsUI();
+    startDesktopSync();
     renderAll();
     tick();
     renderNotifyStatus();
@@ -4688,15 +4789,33 @@
 
   function init(){
     load();
+    if (/[?&]desktop=1(?:&|$)/.test(location.search)) {
+      settings.desktopSync = true;
+      save();
+    }
     applySettingsUI();
     bindEvents();
     $('#quote').textContent = QUOTES[quoteIdx];
     updateDateOnLoad();
     renderAll();
     tick();
+    startDesktopSync();
     setInterval(tick, 1000);
     setInterval(maybeRemind, 5000);
     setInterval(rotateQuote, 16000);
+    window.addEventListener('storage', function(e){
+      if (e.key !== LS_KEY || !e.newValue) return;
+      try {
+        var data = JSON.parse(e.newValue);
+        if (data && data.settings && typeof data.settings.desktopSync !== 'undefined') {
+          var next = !!data.settings.desktopSync;
+          if (next !== settings.desktopSync) {
+            settings.desktopSync = next;
+            startDesktopSync();
+          }
+        }
+      } catch (err) { /* ignore */ }
+    });
 
     if (settings.city) {
       $('#weatherCity').value = settings.city;
