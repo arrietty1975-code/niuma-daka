@@ -563,81 +563,119 @@
   }
 
   /* holiday countdown */
-  .holiday-panel{margin-top:15px;min-height:0}
-  .holiday-body{display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:center;margin-top:4px}
-  .holiday-hero{min-width:230px}
-  .holiday-label{font-size:11px;color:var(--muted);letter-spacing:.06em}
-  .holiday-count{
-    font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:clamp(26px,4vw,40px);font-weight:800;
-    color:var(--ink);font-variant-numeric:tabular-nums;line-height:1.15;margin:2px 0 4px;
+  .holiday-panel{margin-top:15px;min-height:0;overflow:hidden}
+  .holiday-body{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) 176px;
+    grid-template-areas:"hero cal" "list cal" "custom custom";
+    gap:10px 18px;
+    align-items:start;
+    margin-top:5px;
   }
-  .holiday-sub{font-size:11.5px;color:var(--muted);line-height:1.5}
+  .holiday-hero{grid-area:hero;min-width:0}
+  .holiday-label{font-size:10.5px;color:var(--muted);letter-spacing:.08em}
+  .holiday-count{
+    font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:32px;font-weight:800;
+    color:var(--ink);font-variant-numeric:tabular-nums;line-height:1.08;letter-spacing:-.035em;
+    margin:3px 0;white-space:nowrap;text-shadow:0 1px 0 rgba(255,255,255,.65);
+  }
+  .holiday-sub{font-size:11px;color:var(--muted);line-height:1.45;max-width:34ch}
   .holiday-week{
-    font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:12px;font-weight:700;color:var(--orange-deep);
+    font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:11.5px;font-weight:700;color:var(--orange-deep);
     margin:0 0 2px;font-variant-numeric:tabular-nums;
   }
-  .holiday-quip{font-size:11px;color:var(--muted);line-height:1.5;margin-top:5px;font-style:italic}
-  .holiday-list{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-start;align-content:center}
+  .holiday-quip{
+    font-size:10.5px;color:#9a9287;line-height:1.5;margin-top:4px;font-style:italic;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+  }
+  .holiday-list{grid-area:list;display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-start;align-content:center;min-height:0}
   .holiday-chip{
-    display:inline-flex;align-items:center;gap:6px;background:#fff;border:1px solid var(--line);
-    border-radius:999px;padding:6px 11px;font-size:11px;color:#6b645c;
+    display:inline-flex;align-items:center;gap:5px;background:#fff;border:1px solid var(--line);
+    border-radius:999px;padding:5px 9px;font-size:10.5px;color:#6b645c;
   }
   .holiday-chip:hover{border-color:#ffc4a6}
   .holiday-chip b{font-weight:800;color:var(--ink)}
   .holiday-chip em{font-style:normal;color:var(--orange-deep);font-weight:600}
   .holiday-chip.custom{background:var(--orange-soft);border-color:#ffc4a6}
   .holiday-chip .holiday-del{
-    border:none;background:transparent;color:#a89f93;cursor:pointer;padding:0 2px;font-size:13px;line-height:1;
+    border:none;background:transparent;color:#a89f93;cursor:pointer;padding:0 2px;font-size:12px;line-height:1;
   }
   .holiday-chip .holiday-del:hover{color:var(--orange-deep)}
-  .holiday-empty{font-size:11px;color:var(--muted);background:#f8f4ed;border:1px dashed var(--line);border-radius:12px;padding:8px 12px}
+  .holiday-empty{font-size:10.5px;color:var(--muted);background:#f8f4ed;border:1px dashed var(--line);border-radius:11px;padding:7px 10px}
   .holiday-custom{
-    grid-column:1/-1;display:flex;gap:8px;flex-wrap:wrap;align-items:center;
-    border-top:1px dashed var(--line);padding-top:12px;margin-top:4px;
+    grid-area:custom;display:flex;gap:6px;flex-wrap:wrap;align-items:center;
+    border-top:1px dashed var(--line);padding-top:10px;margin-top:2px;
   }
   .holiday-custom input{
-    flex:1;min-width:120px;border:1.5px solid var(--line);border-radius:10px;padding:8px 10px;
-    font:inherit;font-size:12px;outline:none;background:#fff;color:var(--ink);
+    flex:1;min-width:110px;border:1.5px solid var(--line);border-radius:9px;padding:7px 9px;
+    font:inherit;font-size:11.5px;outline:none;background:#fff;color:var(--ink);
   }
   .holiday-custom input:focus{border-color:var(--orange);box-shadow:0 0 0 3px rgba(255,90,31,.12)}
-  .holiday-custom input[type="date"]{flex:0 0 134px}
+  .holiday-custom input[type="date"]{flex:0 0 126px}
   .holiday-custom button{
-    border:none;border-radius:10px;background:linear-gradient(180deg,#ff6a33,var(--orange));color:#fff;
-    font-weight:700;padding:9px 16px;cursor:pointer;font-size:12.5px;
+    border:none;border-radius:9px;background:linear-gradient(180deg,#ff6a33,var(--orange));color:#fff;
+    font-weight:700;padding:8px 14px;cursor:pointer;font-size:12px;
   }
   .holiday-custom button:active{transform:scale(.97)}
-  .holiday-cal-wrap{margin-top:6px;border-top:1px dashed var(--line);padding-top:4px}
-  .cal-head{display:flex;align-items:center;gap:4px;margin-bottom:3px}
-  .cal-nav{
-    width:18px;height:18px;border-radius:5px;border:1px solid var(--line);background:#fff;
-    color:var(--muted);cursor:pointer;font-size:11px;line-height:1;flex:none;
+
+  .holiday-cal-wrap{
+    grid-area:cal;justify-self:end;width:176px;max-width:100%;
+    padding:9px;border:1px solid rgba(28,27,25,.075);border-radius:16px;
+    background:linear-gradient(165deg,#fffefb 0%,#faf5ed 100%);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.9),0 8px 20px rgba(70,48,24,.055);
   }
-  .cal-nav:hover{color:var(--orange);border-color:#ffc4a6}
-  #calTitle{font-size:10.5px;font-weight:800;flex:1;text-align:center;letter-spacing:.02em}
-  .cal-legend{display:inline-flex;gap:6px;font-size:8px;color:var(--muted);flex:none}
-  .cal-legend i{display:inline-block;width:6px;height:6px;border-radius:2px;margin-right:2px;vertical-align:0}
-  .cal-legend .lg-holiday{background:var(--orange-soft);border:1px solid #ffc4a6}
-  .cal-legend .lg-today{background:#fff;border:1px solid var(--orange)}
-  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1.5px}
-  .cal-wd{text-align:center;font-size:7.5px;color:var(--muted);padding:0}
+  .cal-head{
+    display:flex;align-items:center;gap:2px;margin-bottom:6px;padding-bottom:6px;
+    border-bottom:1px solid rgba(28,27,25,.06);
+  }
+  .cal-nav{
+    width:19px;height:19px;border-radius:6px;border:1px solid rgba(28,27,25,.09);
+    background:rgba(255,255,255,.72);color:#8f877b;cursor:pointer;font-size:12px;line-height:1;
+    flex:none;display:grid;place-items:center;padding:0;transition:all .16s;
+  }
+  .cal-nav:hover{color:var(--orange);border-color:#ffc4a6;background:#fff8f2}
+  .cal-nav:active{transform:scale(.94)}
+  #calTitle{
+    font-size:10px;font-weight:800;flex:1;text-align:center;letter-spacing:.04em;
+    color:#5a5249;font-variant-numeric:tabular-nums;
+  }
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+  .cal-wd{text-align:center;font-size:8px;color:#a9a095;font-weight:600;line-height:1.5;padding:0}
   .cal-cell{
-    position:relative;min-height:16px;border-radius:4px;border:1px solid transparent;
-    padding:0;text-align:center;font-size:8.5px;color:var(--ink);display:flex;align-items:center;justify-content:center;
+    position:relative;min-height:18px;border-radius:5px;border:1px solid transparent;
+    padding:0;text-align:center;font-size:9px;color:#514b43;display:flex;align-items:center;justify-content:center;
+    transition:background .16s,box-shadow .16s,transform .16s;
   }
   .cal-cell .cal-day{font-variant-numeric:tabular-nums;font-weight:600;line-height:1}
-  .cal-cell.is-holiday{background:var(--orange-soft);border-color:#ffc4a6;color:var(--orange-deep)}
-  .cal-cell.is-today{box-shadow:inset 0 0 0 1.5px var(--orange);font-weight:800}
-  .cal-cell.is-past{opacity:.42}
-  .cal-cell.is-past.is-holiday{opacity:.6}
+  .cal-cell.is-holiday{background:linear-gradient(180deg,#fff3ea,#ffe7d8);border-color:transparent;color:var(--orange-deep);font-weight:700}
+  .cal-cell.is-today{box-shadow:inset 0 0 0 1.5px var(--orange),0 2px 6px rgba(255,90,31,.16);font-weight:800;background:#fffaf5}
+  .cal-cell.is-past{opacity:.38}
+  .cal-cell.is-past.is-holiday{opacity:.55}
+  .cal-cell:not(.is-blank):hover{background:#fff7f0;transform:translateY(-1px)}
   .cal-cell .cal-left,.cal-cell .cal-name,.cal-cell .cal-dot{display:none}
   .cal-blank{visibility:hidden}
-  @media (max-width:480px){
-    .cal-cell{min-height:15px;font-size:8px}
-    #calTitle{font-size:10px}
-    .cal-legend{display:none}
+  .cal-legend{
+    display:flex;justify-content:center;gap:10px;margin-top:6px;font-size:7.5px;
+    color:#a59c91;letter-spacing:.02em;
+  }
+  .cal-legend span{display:inline-flex;align-items:center;gap:3px}
+  .cal-legend i{display:inline-block;width:6px;height:6px;border-radius:2px}
+  .cal-legend .lg-holiday{background:var(--orange-soft);border:1px solid #ffc4a6}
+  .cal-legend .lg-today{background:#fff;border:1px solid var(--orange)}
+  @media (max-width:1080px){
+    .holiday-count{font-size:36px}
   }
   @media (max-width:720px){
-    .holiday-body{grid-template-columns:1fr}
+    .holiday-body{grid-template-columns:minmax(0,1fr) 164px;gap:10px 14px}
+    .holiday-cal-wrap{width:164px}
+    .holiday-count{font-size:32px}
+  }
+  @media (max-width:560px){
+    .holiday-body{grid-template-columns:1fr;grid-template-areas:"hero" "cal" "list" "custom";gap:10px}
+    .holiday-cal-wrap{justify-self:center;width:100%;max-width:260px;padding:10px}
+    .holiday-count{font-size:30px}
+    .cal-cell{min-height:21px;font-size:9.5px}
+    .cal-wd{font-size:8px}
     .holiday-custom input[type="date"]{flex:1 1 46%}
   }
 
@@ -1077,6 +1115,18 @@
         <div class="holiday-sub" id="holidaySub">--</div>
         <div class="holiday-quip" id="holidayQuip"></div>
       </div>
+      <div class="holiday-cal-wrap">
+        <div class="cal-head">
+          <button class="cal-nav" id="calPrev" type="button" aria-label="上个月">‹</button>
+          <span id="calTitle">--</span>
+          <button class="cal-nav" id="calNext" type="button" aria-label="下个月">›</button>
+        </div>
+        <div class="cal-grid" id="calGrid"></div>
+        <div class="cal-legend">
+          <span><i class="lg-holiday"></i>放假</span>
+          <span><i class="lg-today"></i>今天</span>
+        </div>
+      </div>
       <div class="holiday-list" id="holidayList"></div>
       <div class="holiday-custom">
         <input id="holidayName" type="text" maxlength="12" placeholder="自定义放假（请年假 / 调休）" autocomplete="off">
@@ -1084,15 +1134,6 @@
         <input id="holidayEnd" type="date" aria-label="结束日期">
         <button id="holidayAdd" type="button">记录</button>
       </div>
-    </div>
-    <div class="holiday-cal-wrap">
-      <div class="cal-head">
-        <button class="cal-nav" id="calPrev" type="button" aria-label="上个月">‹</button>
-        <span id="calTitle">--</span>
-        <button class="cal-nav" id="calNext" type="button" aria-label="下个月">›</button>
-        <span class="cal-legend"><i class="lg-holiday"></i>放假<i class="lg-today"></i>今天</span>
-      </div>
-      <div class="cal-grid" id="calGrid"></div>
     </div>
   </section>
 
