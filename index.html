@@ -3537,6 +3537,16 @@
     } else if (action === 'water_snooze' || action === 'eye_snooze') {
       var snoozeType = action === 'water_snooze' ? 'water' : 'eye';
       if (careMatch && careType === snoozeType) snoozeCareAlert();
+    } else if (action === 'quick_water') {
+      drink(1);
+    } else if (action === 'quick_eye') {
+      eyeRest();
+    } else if (action === 'quick_stand') {
+      if (state.sitStart) standToggle();
+      else toast('已经起身了，先站会儿再回来。', 'info');
+    }
+    if (action.indexOf('quick_') === 0 && desktopSyncConnected) {
+      setTimeout(pushDesktopState, 120);
     }
   }
 
