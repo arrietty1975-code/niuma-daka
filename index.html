@@ -1075,7 +1075,7 @@
           <svg class="icon"><use href="#i-copy"/></svg>生成今日日报
         </button>
         <button class="btn ghost" id="miniBtn" type="button">
-          <svg class="icon"><use href="#i-pip"/></svg>小窗模式
+          <svg class="icon"><use href="#i-pip"/></svg><span id="miniBtnLabel">小窗模式</span>
         </button>
       </div>
     </div>
@@ -1555,6 +1555,8 @@
     <label class="switch-row"><span>提示音</span><input type="checkbox" id="setSound"></label>
     <label class="switch-row"><span>桌面透明小窗同步（本机）</span><input type="checkbox" id="setDesktopSync"></label>
     <p class="field-hint">需要先运行「牛马小窗」桌面 App。开启后每 2 秒把倒计时和统计同步到本机 127.0.0.1，不会上传服务器。</p>
+    <label class="switch-row"><span>Mac 上使用浏览器小窗（不用桌面 App）</span><input type="checkbox" id="setBrowserMini"></label>
+    <p class="field-hint">默认在 Mac 上优先打开真正透明的桌面小窗；没装「牛马小窗」App 时，勾选这里可继续用浏览器小窗。</p>
     <div class="modal-foot">
       <button class="btn danger-ghost small" id="resetDay" type="button">重置今天</button>
       <div class="spacer"></div>
@@ -1652,7 +1654,8 @@
     meetingMode: false,
     city: '',
     sound: true,
-    desktopSync: true
+    desktopSync: true,
+    browserMini: false
   };
 
   var settings = Object.assign({}, DEFAULT_SETTINGS);
@@ -1863,6 +1866,7 @@
     settings.notify = !!settings.notify;
     settings.sound = !!settings.sound;
     settings.desktopSync = !!settings.desktopSync;
+    settings.browserMini = !!settings.browserMini;
     if (!state) state = newDay();
     state.exercises = Array.isArray(state.exercises) ? state.exercises : [];
     state.restDay = !!state.restDay;
@@ -3516,7 +3520,49 @@
     toast('小窗已打开，可以拖到屏幕角落。', 'success');
   }
 
+  function isMacDesktop(){
+    return /Mac/i.test(navigator.platform || '') || /Mac OS X/i.test(navigator.userAgent || '');
+  }
+
+  function updateMiniButtonLabel(){
+    var label = $('#miniBtnLabel');
+    var btn = $('#miniBtn');
+    if (!label || !btn) return;
+    if (isMacDesktop() && !settings.browserMini) {
+      label.textContent = '透明小窗';
+      btn.title = '打开桌面透明小窗（需运行牛马小窗 App）';
+    } else {
+      label.textContent = '小窗模式';
+      btn.title = '打开浏览器小窗';
+    }
+  }
+
+  function openDesktopMini(){
+    var ctrl = null;
+    var timer = null;
+    if ('AbortController' in window) {
+      ctrl = new AbortController();
+      timer = setTimeout(function(){ try { ctrl.abort(); } catch (err) { /* ignore */ } }, 2000);
+    }
+    fetch('http://127.0.0.1:47821/show', {
+      mode: 'cors',
+      cache: 'no-store',
+      signal: ctrl ? ctrl.signal : undefined
+    }).then(function(r){
+      if (timer) clearTimeout(timer);
+      if (!r.ok) throw new Error('bad status');
+      toast('桌面透明小窗已打开。', 'success');
+    }).catch(function(){
+      if (timer) clearTimeout(timer);
+      toast('没有检测到「牛马小窗」App，请先双击运行它，再点一次。', 'warn');
+    });
+  }
+
   function openMiniWindow(){
+    if (isMacDesktop() && !settings.browserMini) {
+      openDesktopMini();
+      return;
+    }
     if (miniWin && !miniWin.closed) {
       try { miniWin.focus(); } catch (err) { /* ignore */ }
       return;
@@ -4442,6 +4488,7 @@
     $('#sitLimitLabel').textContent = settings.sitLimit;
     document.title = baseTitle();
     updateMeetingUI();
+    updateMiniButtonLabel();
   }
 
   function renderAll(){
@@ -4593,6 +4640,7 @@
     $('#setMeeting').checked = !!settings.meetingMode;
     $('#setSound').checked = !!settings.sound;
     $('#setDesktopSync').checked = !!settings.desktopSync;
+    $('#setBrowserMini').checked = !!settings.browserMini;
     renderNotifyStatus();
     openModal('settingsModal');
   }
@@ -4618,6 +4666,7 @@
     settings.meetingMode = $('#setMeeting').checked;
     settings.sound = $('#setSound').checked;
     settings.desktopSync = $('#setDesktopSync').checked;
+    settings.browserMini = $('#setBrowserMini').checked;
     if (settings.meetingMode && !wasMeeting) {
       hideSitAlert();
       hideCareAlert();
