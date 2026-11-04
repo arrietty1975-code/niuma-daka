@@ -580,6 +580,14 @@
     margin:3px 0;white-space:nowrap;text-shadow:0 1px 0 rgba(255,255,255,.65);
   }
   .holiday-sub{font-size:11px;color:var(--muted);line-height:1.45;max-width:34ch}
+  .holiday-stay{
+    display:inline-flex;align-items:center;gap:5px;width:max-content;max-width:100%;
+    margin-top:5px;padding:4px 9px 4px 7px;border-radius:999px;
+    background:#f2f8ee;border:1px solid #d9e8cf;color:#55743f;
+    font-size:10.5px;font-weight:600;line-height:1.2;
+  }
+  .holiday-stay .icon{width:12px;height:12px;color:#6f9b52;flex:none}
+  .holiday-stay b{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:12px;font-weight:800;color:#3f6b2e;margin:0 1px}
   .holiday-week{
     font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:11.5px;font-weight:700;color:var(--orange-deep);
     margin:0 0 2px;font-variant-numeric:tabular-nums;
@@ -1037,6 +1045,7 @@
   <symbol id="i-dumbbell" viewBox="0 0 24 24"><path d="M7 8v8M4.5 9.5v5M17 8v8M19.5 9.5v5"/><path d="M7 12h10M2.5 12h2M19.5 12h2"/></symbol>
   <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 9.5h17"/><path d="M8 3v3.5M16 3v3.5"/><path d="M8 13.5h.01M12 13.5h.01M16 13.5h.01M8 17h.01M12 17h.01"/></symbol>
   <symbol id="i-cloud" viewBox="0 0 24 24"><path d="M7.5 18.5a4.2 4.2 0 0 1-.3-8.4A5.8 5.8 0 0 1 17.7 9a3.7 3.7 0 0 1 .3 9.5H7.5z"/></symbol>
+  <symbol id="i-grass" viewBox="0 0 24 24"><path d="M3.5 20c1.8-5.8 4.6-9 8.5-11"/><path d="M20.5 20c-1.8-5.8-4.6-9-8.5-11"/><path d="M12 20c0-4.6 1.6-7.7 4.8-10.4"/><path d="M12 20c0-4.6-1.6-7.7-4.8-10.4"/></symbol>
   <symbol id="i-pip" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2.5"/><rect x="12" y="11" width="7" height="6" rx="1.5"/></symbol>
   <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M15.5 6.5V5A1.5 1.5 0 0 0 14 3.5H5A1.5 1.5 0 0 0 3.5 5v9A1.5 1.5 0 0 0 5 15.5h1.5"/></symbol>
   <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13 2L5 13h5l-1 9 8-11h-5l1-9z"/></symbol>
@@ -1129,6 +1138,10 @@
         <div class="holiday-count" id="holidayCount">--</div>
         <div class="holiday-week" id="holidayWeek"></div>
         <div class="holiday-sub" id="holidaySub">--</div>
+        <div class="holiday-stay" id="holidayStay" hidden>
+          <svg class="icon"><use href="#i-grass"/></svg>
+          <span id="holidayStayText"></span>
+        </div>
         <div class="holiday-quip" id="holidayQuip"></div>
       </div>
       <div class="holiday-cal-wrap">
@@ -3111,12 +3124,15 @@
     var tag = $('#holidayTag');
     var weekEl = $('#holidayWeek');
     var quipEl = $('#holidayQuip');
+    var stayEl = $('#holidayStay');
+    var stayText = $('#holidayStayText');
     if (!count) return;
     var next = items && items[0];
     if (!next) {
       label.textContent = '距离放假还有';
       count.textContent = '--';
       if (weekEl) weekEl.textContent = '';
+      if (stayEl) stayEl.hidden = true;
       sub.textContent = '暂无已知假期，可以自己添加请假 / 调休日期。';
       if (quipEl) quipEl.textContent = '没有盼头的牛马，和咸鱼有什么区别？';
       if (tag) { tag.textContent = '未知'; tag.className = 'tag'; }
@@ -3138,6 +3154,17 @@
       weekTxt = '就是今天';
     }
     if (weekEl) weekEl.textContent = weekTxt;
+    var totalDays = Math.max(1, Math.round((next.endTs - next.startTs) / 86400000));
+    if (stayEl && stayText) {
+      if (now >= next.startTs) {
+        var leftDays = Math.max(1, Math.ceil((next.endTs - now) / 86400000));
+        stayText.innerHTML = '还能在草原待 <b>' + leftDays + '</b> 天';
+      } else {
+        stayText.innerHTML = '可以在草原待 <b>' + totalDays + '</b> 天';
+      }
+      stayEl.title = '这次假期共 ' + totalDays + ' 天';
+      stayEl.hidden = false;
+    }
     var quip = holidayQuipFor(d, now >= next.startTs);
     if (quipEl) quipEl.textContent = quip;
     if (now >= next.startTs) {
