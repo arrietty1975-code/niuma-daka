@@ -1843,10 +1843,11 @@
         <em>分钟</em>
       </div>
     </div>
-    <div class="field-row" id="flexLunchRow" hidden>
+    <div class="field-row" id="flexLunchRow">
       <label class="field"><span>午休开始</span><input type="time" id="setLunchStart"></label>
       <label class="field"><span>午休结束</span><input type="time" id="setLunchEnd"></label>
     </div>
+    <label class="switch-row" id="lunchQuietSwitch"><span>午休时间不报警</span><input type="checkbox" id="setLunchQuiet"></label>
     <label class="switch-row" id="flexLunchSwitch" hidden><span>午休不计入工作时长</span><input type="checkbox" id="setLunchEnabled"></label>
     <p class="field-hint" id="flexHint" hidden>弹性模式下，下班时间 = 上班打卡时间 + 每日工作时长，并自动跳过午休。</p>
     <div class="field-row">
@@ -1997,6 +1998,7 @@
     flexible: false,
     workMinutes: 480,
     lunchEnabled: true,
+    lunchQuiet: true,
     lunchStart: '12:00',
     lunchEnd: '13:00',
     waterGoal: 8,
@@ -2024,6 +2026,7 @@
   var notifyPromptTried = false;
   var customHolidays = [];
   var ventHistory = [];
+  var lunchQuietActive = false;
   var earlyPunchTimer = null;
 
   var STATIC_HOLIDAYS = [
@@ -2136,6 +2139,12 @@
     var end = atTime(new Date(dayTs), settings.lunchEnd).getTime();
     if (!(end > start)) return null;
     return { start: start, end: end };
+  }
+  function inLunchQuiet(now){
+    if (!settings.lunchQuiet) return false;
+    var start = atTime(new Date(now), settings.lunchStart || '12:00').getTime();
+    var end = atTime(new Date(now), settings.lunchEnd || '13:00').getTime();
+    return end > start && now >= start && now < end;
   }
 
   function flexOffWorkTs(clockIn){
@@ -2293,6 +2302,7 @@
     settings.flexible = !!settings.flexible;
     settings.workMinutes = Math.min(16 * 60, Math.max(30, Number(settings.workMinutes) || 480));
     settings.lunchEnabled = !!settings.lunchEnabled;
+    settings.lunchQuiet = settings.lunchQuiet !== false;
     settings.lunchStart = settings.lunchStart || '12:00';
     settings.lunchEnd = settings.lunchEnd || '13:00';
     if (!state) state = newDay();
@@ -4602,6 +4612,7 @@
   function maybeCareRemind(){
     var now = Date.now();
     if (settings.meetingMode) return;
+    if (inLunchQuiet(now)) return;
     if (!inWorkWindow(now)) return;
     if (!$('#sitAlert').hidden || !$('#careAlert').hidden) return;
     if ($('.modal-backdrop:not([hidden])')) return;
@@ -5452,6 +5463,22 @@
       return;
     }
     var now = Date.now();
+    if (inLunchQuiet(now)) {
+      if (!$('#sitAlert').hidden) hideSitAlert();
+      if (!$('#careAlert').hidden) hideCareAlert();
+      lunchQuietActive = true;
+      return;
+    }
+    if (lunchQuietActive) {
+      lunchQuietActive = false;
+      if (state.sitStart) state.sitStart = now;
+      if (state.lastWaterAt) state.lastWaterAt = now;
+      if (state.lastEyeAt) state.lastEyeAt = now;
+      state.sitReminded = false;
+      state.waterReminded = false;
+      state.eyeReminded = false;
+      save();
+    }
     var blocked = !$('#careAlert').hidden || !$('#sitAlert').hidden || !!$('.modal-backdrop:not([hidden])');
     if (state.sitStart && !blocked) {
       var ms = now - state.sitStart;
@@ -5497,7 +5524,8 @@
   }
 
   function updateSettingsLunchInputs(){
-    var enabled = $('#setLunchEnabled').checked;
+    var flexible = !$('#flexWorkField').hidden;
+    var enabled = (flexible && $('#setLunchEnabled').checked) || $('#setLunchQuiet').checked;
     $('#setLunchStart').disabled = !enabled;
     $('#setLunchEnd').disabled = !enabled;
   }
@@ -5506,7 +5534,6 @@
     var flexible = mode === 'flexible';
     $('#fixedTimeRow').hidden = flexible;
     $('#flexWorkField').hidden = !flexible;
-    $('#flexLunchRow').hidden = !flexible;
     $('#flexLunchSwitch').hidden = !flexible;
     $('#flexHint').hidden = !flexible;
     var buttons = $('#setWorkMode').querySelectorAll('button');
@@ -5526,6 +5553,7 @@
     $('#setLunchStart').value = settings.lunchStart || '12:00';
     $('#setLunchEnd').value = settings.lunchEnd || '13:00';
     $('#setLunchEnabled').checked = !!settings.lunchEnabled;
+    $('#setLunchQuiet').checked = settings.lunchQuiet !== false;
     setSettingsMode(settings.flexible ? 'flexible' : 'fixed');
     $('#setWater').value = settings.waterGoal;
     $('#setSit').value = settings.sitLimit;
@@ -5564,15 +5592,18 @@
         return;
       }
       lunchEnabled = $('#setLunchEnabled').checked;
-      lunchStart = $('#setLunchStart').value || '12:00';
-      lunchEnd = $('#setLunchEnd').value || '13:00';
-      if (lunchEnabled && lunchStart >= lunchEnd) {
-        toast('午休结束时间要晚于开始时间。', 'warn');
-        return;
-      }
     } else if (start >= end) {
       toast('下班时间要晚于上班时间，不然就是倒贴上班。', 'warn');
       return;
+    }
+    var lunchQuiet = $('#setLunchQuiet').checked;
+    if (lunchEnabled || lunchQuiet) {
+      lunchStart = $('#setLunchStart').value || '12:00';
+      lunchEnd = $('#setLunchEnd').value || '13:00';
+      if (lunchStart >= lunchEnd) {
+        toast('午休结束时间要晚于开始时间。', 'warn');
+        return;
+      }
     }
     var name = ($('#setName').value || '').trim().slice(0, 12) || '牛马一号';
     settings.name = name;
@@ -5583,6 +5614,7 @@
     settings.flexible = flexible;
     settings.workMinutes = workMinutes;
     settings.lunchEnabled = lunchEnabled;
+    settings.lunchQuiet = lunchQuiet;
     settings.lunchStart = lunchStart;
     settings.lunchEnd = lunchEnd;
     settings.waterGoal = Math.min(20, Math.max(1, parseInt($('#setWater').value, 10) || 8));
@@ -5712,6 +5744,7 @@
       if (btn) setSettingsMode(btn.getAttribute('data-mode'));
     });
     $('#setLunchEnabled').addEventListener('change', updateSettingsLunchInputs);
+    $('#setLunchQuiet').addEventListener('change', updateSettingsLunchInputs);
     $('#meetingBtn').addEventListener('click', function(){ toggleMeetingMode(); });
     $('#meetingEnd').addEventListener('click', function(){ toggleMeetingMode(false); });
     $('#saveSettings').addEventListener('click', saveSettings);
