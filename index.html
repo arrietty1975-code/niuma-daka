@@ -3504,7 +3504,11 @@
       clockIn: state.clockIn || null,
       clockOut: state.clockOut || null,
       water: state.water || 0,
+      waterGoal: settings.waterGoal,
       sitMs: sitMsOf(state, now),
+      sitStart: state.sitStart || null,
+      breakStart: state.breakStart || null,
+      standCount: state.standCount || 0,
       eyeRest: state.eyeRest || 0,
       workedMs: workedMs(),
       workStart: settings.workStart,
@@ -3542,8 +3546,7 @@
     } else if (action === 'quick_eye') {
       eyeRest();
     } else if (action === 'quick_stand') {
-      if (state.sitStart) standToggle();
-      else toast('已经起身了，先站会儿再回来。', 'info');
+      standToggle();
     }
     if (action.indexOf('quick_') === 0 && desktopSyncConnected) {
       setTimeout(pushDesktopState, 120);
@@ -3583,7 +3586,8 @@
       }).then(function(text){
         try {
           var res = text ? JSON.parse(text) : null;
-          if (res && res.action) handleDesktopAction(res.action);
+          if (res && Array.isArray(res.actions) && res.actions.length) res.actions.forEach(handleDesktopAction);
+          else if (res && res.action) handleDesktopAction(res.action);
         } catch (err) { /* ignore malformed reply */ }
         done();
       }, function(){ desktopSyncFailed(); done(); });
