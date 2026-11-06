@@ -1858,6 +1858,9 @@
       <label class="field"><span>多久没喝水就报警（分钟）</span><input type="number" id="setWaterRemind" min="15" max="240" step="5"></label>
       <label class="field"><span>多久没护眼就报警（分钟）</span><input type="number" id="setEyeRemind" min="10" max="180" step="5"></label>
     </div>
+    <label class="switch-row"><span>久坐报警</span><input type="checkbox" id="setAlertSit"></label>
+    <label class="switch-row"><span>喝水报警</span><input type="checkbox" id="setAlertWater"></label>
+    <label class="switch-row"><span>护眼报警</span><input type="checkbox" id="setAlertEye"></label>
     <label class="switch-row"><span>后台强提醒（离开页面时弹系统通知）</span><input type="checkbox" id="setNotify"></label>
     <p class="field-hint">浏览器不允许网页强制覆盖其他标签页或应用；开启后会发送系统通知并闪烁标签页标题，切回本页时可看到全屏提醒。</p>
     <p class="field-hint" id="notifyStatus"></p>
@@ -2005,6 +2008,9 @@
     sitLimit: 45,
     waterRemindMin: 60,
     eyeRemindMin: 45,
+    alertSit: true,
+    alertWater: true,
+    alertEye: true,
     notify: false,
     meetingMode: false,
     city: '',
@@ -2294,6 +2300,9 @@
     settings.sitLimit = Math.min(180, Math.max(10, Number(settings.sitLimit) || 45));
     settings.waterRemindMin = Math.min(240, Math.max(15, Number(settings.waterRemindMin) || 60));
     settings.eyeRemindMin = Math.min(180, Math.max(10, Number(settings.eyeRemindMin) || 45));
+    settings.alertSit = settings.alertSit !== false;
+    settings.alertWater = settings.alertWater !== false;
+    settings.alertEye = settings.alertEye !== false;
     settings.meetingMode = !!settings.meetingMode;
     settings.notify = !!settings.notify;
     settings.sound = !!settings.sound;
@@ -4618,7 +4627,7 @@
     if ($('.modal-backdrop:not([hidden])')) return;
 
     var waterGap = now - (state.lastWaterAt || now);
-    if (waterGap >= settings.waterRemindMin * 60000) {
+    if (settings.alertWater && waterGap >= settings.waterRemindMin * 60000) {
       if (state.waterSnoozeUntil && now >= state.waterSnoozeUntil) {
         state.waterSnoozeUntil = 0;
         state.waterReminded = false;
@@ -4634,7 +4643,7 @@
     }
 
     var eyeGap = now - (state.lastEyeAt || now);
-    if (eyeGap >= settings.eyeRemindMin * 60000) {
+    if (settings.alertEye && eyeGap >= settings.eyeRemindMin * 60000) {
       if (state.eyeSnoozeUntil && now >= state.eyeSnoozeUntil) {
         state.eyeSnoozeUntil = 0;
         state.eyeReminded = false;
@@ -5480,7 +5489,7 @@
       save();
     }
     var blocked = !$('#careAlert').hidden || !$('#sitAlert').hidden || !!$('.modal-backdrop:not([hidden])');
-    if (state.sitStart && !blocked) {
+    if (settings.alertSit && state.sitStart && !blocked) {
       var ms = now - state.sitStart;
       if (ms >= settings.sitLimit * 60000) {
         if (state.sitSnoozeUntil && now >= state.sitSnoozeUntil) {
@@ -5559,6 +5568,9 @@
     $('#setSit').value = settings.sitLimit;
     $('#setWaterRemind').value = settings.waterRemindMin;
     $('#setEyeRemind').value = settings.eyeRemindMin;
+    $('#setAlertSit').checked = settings.alertSit !== false;
+    $('#setAlertWater').checked = settings.alertWater !== false;
+    $('#setAlertEye').checked = settings.alertEye !== false;
     $('#setNotify').checked = !!settings.notify;
     $('#setMeeting').checked = !!settings.meetingMode;
     $('#setSound').checked = !!settings.sound;
@@ -5621,6 +5633,17 @@
     settings.sitLimit = Math.min(180, Math.max(10, parseInt($('#setSit').value, 10) || 45));
     settings.waterRemindMin = Math.min(240, Math.max(15, parseInt($('#setWaterRemind').value, 10) || 60));
     settings.eyeRemindMin = Math.min(180, Math.max(10, parseInt($('#setEyeRemind').value, 10) || 45));
+    var alertSit = $('#setAlertSit').checked;
+    var alertWater = $('#setAlertWater').checked;
+    var alertEye = $('#setAlertEye').checked;
+    if (alertSit && !settings.alertSit) { state.sitReminded = false; state.sitSnoozeUntil = 0; }
+    if (alertWater && !settings.alertWater) { state.waterReminded = false; state.waterSnoozeUntil = 0; }
+    if (alertEye && !settings.alertEye) { state.eyeReminded = false; state.eyeSnoozeUntil = 0; }
+    settings.alertSit = alertSit;
+    settings.alertWater = alertWater;
+    settings.alertEye = alertEye;
+    if (!alertSit && !$('#sitAlert').hidden) hideSitAlert();
+    if (!$('#careAlert').hidden && ((careType === 'water' && !alertWater) || (careType === 'eye' && !alertEye))) hideCareAlert();
     var wantNotify = $('#setNotify').checked;
     var wasMeeting = !!settings.meetingMode;
     settings.notify = wantNotify;
